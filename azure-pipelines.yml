@@ -9,9 +9,8 @@ trigger:
 jobs:
 - job: nifiJob
   timeoutInMinutes: 90
-
-pool:
-  vmImage: ubuntu-latest
+  pool:
+    vmImage: ubuntu-latest
 
 steps:
 - task: Maven@3
