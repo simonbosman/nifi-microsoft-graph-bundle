@@ -22,7 +22,7 @@ import org.apache.nifi.util.TestRunners;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestStandardMyService {
+public class TestGraphAuthControllerService {
 
     @Before
     public void init() {
@@ -32,10 +32,10 @@ public class TestStandardMyService {
     @Test
     public void testService() throws InitializationException {
         final TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        final StandardMyService service = new StandardMyService();
+        final GraphAuthControllerService service = new GraphAuthControllerService();
         runner.addControllerService("test-good", service);
 
-        runner.setProperty(service, StandardMyService.MY_PROPERTY, "test-value");
+        runner.setProperty(service, GraphAuthControllerService.MY_PROPERTY, "test-value");
         runner.enableControllerService(service);
 
         runner.assertValid(service);

@@ -31,14 +31,14 @@ import org.apache.nifi.processor.exception.ProcessException;
 import org.apache.nifi.processor.util.StandardValidators;
 import org.apache.nifi.reporting.InitializationException;
 
-@Tags({ "example"})
-@CapabilityDescription("Example ControllerService implementation of MyService.")
-public class StandardMyService extends AbstractControllerService implements MyService {
+@Tags({ "Microsoft Graph authentication controller"})
+@CapabilityDescription("Microsoft Graph ControllerService implementation of GraphAuthService.")
+public class GraphAuthControllerService extends AbstractControllerService implements GraphAuthService {
 
     public static final PropertyDescriptor MY_PROPERTY = new PropertyDescriptor
-            .Builder().name("MY_PROPERTY")
-            .displayName("My Property")
-            .description("Example Property")
+            .Builder().name("CLIENT_ID")
+            .displayName("Client id")
+            .description("Client id")
             .required(true)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
