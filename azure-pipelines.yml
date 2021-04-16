@@ -6,6 +6,10 @@
 trigger:
 - master
 
+jobs:
+- job: nifiJob
+  timeoutInMinutes: 90
+
 pool:
   vmImage: ubuntu-latest
 
