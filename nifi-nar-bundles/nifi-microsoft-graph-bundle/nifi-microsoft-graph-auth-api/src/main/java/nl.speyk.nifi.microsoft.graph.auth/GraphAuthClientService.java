@@ -80,6 +80,11 @@ public interface GraphAuthClientService extends ControllerService {
             .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
             .build();
 
+    /**
+     * Builds a Microsoft Graph Client
+     *
+     * @return GraphClient object
+     */
     GraphServiceClient<Request> getGraphClient();
 
 }
