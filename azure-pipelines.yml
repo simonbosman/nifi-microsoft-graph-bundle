@@ -6,6 +6,7 @@
 trigger:
 - master
 
+#Use local building pool
 pool:
   name: 'local-dev' 
 
