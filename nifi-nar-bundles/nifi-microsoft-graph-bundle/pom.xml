@@ -23,8 +23,8 @@
     </parent>
 
     <groupId>nl.speyk.nifi</groupId>
-    <artifactId>nifi-microsoft-graph-bundle</artifactId>
-    <version>0.1.0</version>
+        <artifactId>nifi-microsoft-graph-bundle</artifactId>
+        <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -32,6 +32,8 @@
         <module>nifi-microsoft-graph-auth-api-nar</module>
         <module>nifi-microsoft-graph-auth</module>
         <module>nifi-microsoft-graph-auth-nar</module>
+        <module>nifi-microsoft-graph-processors</module>
+        <module>nifi-microsoft-graph-processors-nar</module>
     </modules>
 
 </project>

@@ -32,14 +32,14 @@ public class TestGraphAuthControllerClientService {
     @Test
     public void testService() throws InitializationException {
         final TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        final GraphAuthControllerClientService service = new GraphAuthControllerClientService();
+        final GraphAuthClientServiceImpl service = new GraphAuthClientServiceImpl();
         runner.addControllerService("test-good", service);
 
-        runner.setProperty(service, GraphAuthControllerClientService.AUTH_CLIENT_ID, "test-value");
-        runner.setProperty(service, GraphAuthControllerClientService.AUTH_TENANT_ID, "test-value");
-        runner.setProperty(service, GraphAuthControllerClientService.AUTH_CLIENT_SECRET, "test-value");
-        runner.setProperty(service, GraphAuthControllerClientService.AUTH_SCOPE, "test-value");
-        runner.setProperty(service, GraphAuthControllerClientService.AUTH_GRANT_TYPE, "test-value");
+        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_CLIENT_ID, "test-value");
+        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_TENANT_ID, "test-value");
+        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_CLIENT_SECRET, "test-value");
+        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_SCOPE, "test-value");
+        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_GRANT_TYPE, "test-value");
 
         runner.enableControllerService(service);
 

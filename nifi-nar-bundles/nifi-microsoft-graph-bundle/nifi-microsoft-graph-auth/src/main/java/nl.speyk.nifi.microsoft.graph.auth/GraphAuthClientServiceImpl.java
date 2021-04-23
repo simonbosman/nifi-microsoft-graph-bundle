@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Tags({ "Speyk", "Microsoft", "Graph", "Authentication", "Service", "Controller"})
 @CapabilityDescription("Speyk Microsoft Graph ControllerService implementation of GraphAuthService.")
-public class GraphAuthControllerClientService extends AbstractControllerService implements GraphAuthClientService {
+public class GraphAuthClientServiceImpl extends AbstractControllerService implements GraphAuthClientService {
 
     private static final List<PropertyDescriptor> properties;
 
@@ -75,7 +75,7 @@ public class GraphAuthControllerClientService extends AbstractControllerService 
 
     @OnDisabled
     public void shutdown() {
-
+        this.graphClient = null;
     }
 
     private void setupGraphClient(ConfigurationContext context) throws InitializationException {

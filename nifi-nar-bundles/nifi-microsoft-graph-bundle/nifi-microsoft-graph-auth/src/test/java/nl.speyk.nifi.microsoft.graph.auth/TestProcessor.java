@@ -36,8 +36,8 @@ public class TestProcessor extends AbstractProcessor {
         List<PropertyDescriptor> propDescs = new ArrayList<>();
         propDescs.add(new PropertyDescriptor.Builder()
                 .name("GraphAuthConrollerClientService test processor")
-                .description("GraphAuthControllerClientService test processor")
-                .identifiesControllerService(GraphAuthControllerClientService.class)
+                .description("GraphAuthClientServiceImpl test processor")
+                .identifiesControllerService(GraphAuthClientServiceImpl.class)
                 .required(true)
                 .build());
         return propDescs;
