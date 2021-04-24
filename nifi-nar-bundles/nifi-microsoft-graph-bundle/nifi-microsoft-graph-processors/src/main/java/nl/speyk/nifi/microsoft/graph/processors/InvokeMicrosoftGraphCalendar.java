@@ -16,10 +16,11 @@
  */
 package nl.speyk.nifi.microsoft.graph.processors;
 
+import com.microsoft.graph.models.User;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.UserCollectionPage;
+import com.microsoft.graph.requests.UserCollectionRequest;
 import nl.speyk.nifi.microsoft.graph.auth.GraphAuthClientService;
-import nl.speyk.nifi.microsoft.graph.auth.GraphAuthClientServiceImpl;
 import okhttp3.Request;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.expression.ExpressionLanguageScope;
@@ -51,7 +52,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @SeeAlso({})
 @ReadsAttributes({@ReadsAttribute(attribute="", description="")})
 @WritesAttributes({@WritesAttribute(attribute="", description="")})
-public class GraphCalendarProcessor extends AbstractProcessor {
+public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     public final static PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor
             .Builder()
@@ -61,7 +62,7 @@ public class GraphCalendarProcessor extends AbstractProcessor {
             .required(true)
             .expressionLanguageSupported(ExpressionLanguageScope.VARIABLE_REGISTRY)
             .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
-            .identifiesControllerService(GraphAuthClientServiceImpl.class)
+            .identifiesControllerService(GraphAuthClientService.class)
             .build();
 
     public static final Relationship MY_RELATIONSHIP = new Relationship.Builder()
@@ -81,7 +82,6 @@ public class GraphCalendarProcessor extends AbstractProcessor {
 
         final Set<Relationship> relationships = new HashSet<>();
         relationships.add(MY_RELATIONSHIP);
-
         this.relationships = Collections.unmodifiableSet(relationships);
         this.descriptors = Collections.unmodifiableList(descriptors);
     }
@@ -96,6 +96,7 @@ public class GraphCalendarProcessor extends AbstractProcessor {
         return descriptors;
     }
 
+    //TODO: put in abstract base class
     @OnScheduled
     public void onScheduled(final ProcessContext context) {
 
@@ -106,7 +107,7 @@ public class GraphCalendarProcessor extends AbstractProcessor {
         }
 
         GraphAuthClientService graphAuthClientService = context.getProperty(GRAPH_CONTROLLER_ID)
-                .asControllerService(GraphAuthClientServiceImpl.class);
+                .asControllerService(GraphAuthClientService.class);
 
         msGraphClient.set(graphAuthClientService.getGraphClient());
     }
@@ -122,14 +123,19 @@ public class GraphCalendarProcessor extends AbstractProcessor {
         }
 
        try {
-           CompletableFuture<UserCollectionPage> future =  msGraphClient.get()
+           UserCollectionPage users =  msGraphClient.get()
                    .users()
                    .buildRequest()
-                   .getAsync();
+                   .get();
 
-           UserCollectionPage users = future.get();
-       } catch (InterruptedException | ExecutionException ex) {
-           logger.error("Getting users from Micrsoft Graph failed.");
+           List<User> usersList = users.getCurrentPage();
+
+           //TODO: Do a case switch on given param GET, POST, PATCH Look for inspiration at InvokeHTTP
+           UserCollectionRequest userCollectionRequestRequest = msGraphClient.get().users().buildRequest();
+
+
+       } catch (Exception ex) {
+           logger.error("Getting users from Microsoft Graph failed.");
            throw new ProcessException(ex);
        }
     }

@@ -28,10 +28,10 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>nifi-microsoft-graph-auth-api</module>
-        <module>nifi-microsoft-graph-auth-api-nar</module>
-        <module>nifi-microsoft-graph-auth</module>
-        <module>nifi-microsoft-graph-auth-nar</module>
+        <module>nifi-microsoft-graph-services-api</module>
+        <module>nifi-microsoft-graph-services-api-nar</module>
+        <module>nifi-microsoft-graph-services</module>
+        <module>nifi-microsoft-graph-services-nar</module>
         <module>nifi-microsoft-graph-processors</module>
         <module>nifi-microsoft-graph-processors-nar</module>
     </modules>
