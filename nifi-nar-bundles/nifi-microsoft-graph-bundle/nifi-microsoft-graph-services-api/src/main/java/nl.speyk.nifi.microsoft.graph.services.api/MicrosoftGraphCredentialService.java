@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.speyk.nifi.microsoft.graph.auth;
+package nl.speyk.nifi.microsoft.graph.services.api;
 
 import com.microsoft.graph.requests.GraphServiceClient;
 import okhttp3.Request;
@@ -23,7 +23,7 @@ import org.apache.nifi.controller.ControllerService;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.processor.util.StandardValidators;
 
-public interface GraphAuthClientService extends ControllerService {
+public interface MicrosoftGraphCredentialService extends ControllerService {
 
     public final static PropertyDescriptor AUTH_CLIENT_ID = new PropertyDescriptor
             .Builder()

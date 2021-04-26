@@ -38,7 +38,12 @@
         </dependency>
         <dependency>
             <groupId>nl.speyk.nifi</groupId>
-            <artifactId>nifi-microsoft-graph-auth</artifactId>
+            <artifactId>nifi-microsoft-graph-services-api</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>nl.speyk.nifi</groupId>
+            <artifactId>nifi-microsoft-graph-services</artifactId>
             <version>0.1.0</version>
         </dependency>
     </dependencies>

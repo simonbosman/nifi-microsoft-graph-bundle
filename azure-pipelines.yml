@@ -14,7 +14,7 @@ steps:
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
-    options: '-T6.0C'
+    options: '-T5.0C'
     mavenOptions: '-Xmx8096m'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: 'default'

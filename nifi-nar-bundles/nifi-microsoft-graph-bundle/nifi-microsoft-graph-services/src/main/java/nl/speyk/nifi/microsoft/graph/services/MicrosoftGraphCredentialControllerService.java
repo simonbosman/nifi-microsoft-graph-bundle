@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.speyk.nifi.microsoft.graph.auth;
+package nl.speyk.nifi.microsoft.graph.services;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +26,7 @@ import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.core.ClientException;
+import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
@@ -38,9 +39,9 @@ import org.apache.nifi.reporting.InitializationException;
 import com.azure.identity.ClientSecretCredential;
 import org.jetbrains.annotations.NotNull;
 
-@Tags({ "Speyk", "Microsoft", "Graph", "Authentication", "Service", "Controller"})
-@CapabilityDescription("Speyk Microsoft Graph ControllerService implementation of GraphAuthService.")
-public class GraphAuthClientServiceImpl extends AbstractControllerService implements GraphAuthClientService {
+@Tags({ "Speyk", "Microsoft", "Graph", "Authentication", "Service", "Controller", "Cloud", "Credentials"})
+@CapabilityDescription("Defines credentials for Microsoft Graph Processors.")
+public class MicrosoftGraphCredentialControllerService extends AbstractControllerService implements MicrosoftGraphCredentialService {
 
     private static final List<PropertyDescriptor> properties;
 
@@ -79,6 +80,7 @@ public class GraphAuthClientServiceImpl extends AbstractControllerService implem
     }
 
     private void setupGraphClient(ConfigurationContext context) throws InitializationException {
+
         final String clientId = context.getProperty(AUTH_CLIENT_ID).getValue();
         final String tenantId = context.getProperty(AUTH_TENANT_ID).getValue();
         final String clientSecret = context.getProperty(AUTH_CLIENT_SECRET).getValue();
@@ -91,6 +93,7 @@ public class GraphAuthClientServiceImpl extends AbstractControllerService implem
                 .build();
 
         final IAuthenticationProvider authProvider = new TokenCredentialAuthProvider(scopes, defaultCredential);
+
         try {
             this.graphClient = GraphServiceClient
                 .builder()

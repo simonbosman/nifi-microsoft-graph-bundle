@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.speyk.nifi.microsoft.graph.auth;
+package nl.speyk.nifi.microsoft.graph.services.api;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.speyk.nifi.microsoft.graph.services.MicrosoftGraphCredentialControllerService;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.processor.AbstractProcessor;
 import org.apache.nifi.processor.ProcessContext;
@@ -36,8 +37,8 @@ public class TestProcessor extends AbstractProcessor {
         List<PropertyDescriptor> propDescs = new ArrayList<>();
         propDescs.add(new PropertyDescriptor.Builder()
                 .name("GraphAuthConrollerClientService test processor")
-                .description("GraphAuthClientServiceImpl test processor")
-                .identifiesControllerService(GraphAuthClientServiceImpl.class)
+                .description("MicrosoftGraphCredentialControllerService test processor")
+                .identifiesControllerService(MicrosoftGraphCredentialControllerService.class)
                 .required(true)
                 .build());
         return propDescs;

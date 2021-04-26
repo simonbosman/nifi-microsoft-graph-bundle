@@ -14,21 +14,24 @@
       limitations under the License.
     -->
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>nl.speyk.nifi</groupId>
         <artifactId>nifi-microsoft-graph-bundle</artifactId>
         <version>0.1.0</version>
     </parent>
+
     <artifactId>nifi-microsoft-graph-processors-nar</artifactId>
     <packaging>nar</packaging>
     <properties>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <source.skip>true</source.skip>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>nl.speyk.nifi</groupId>
-            <artifactId>nifi-microsoft-graph-auth-nar</artifactId>
+            <artifactId>nifi-microsoft-graph-services-nar</artifactId>
             <version>0.1.0</version>
             <type>nar</type>
         </dependency>

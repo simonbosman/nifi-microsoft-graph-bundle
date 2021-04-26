@@ -22,13 +22,13 @@
         <version>0.1.0</version>
     </parent>
 
-    <artifactId>nifi-microsoft-graph-auth</artifactId>
+    <artifactId>nifi-microsoft-graph-services</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>nl.speyk.nifi</groupId>
-            <artifactId>nifi-microsoft-graph-auth-api</artifactId>
+            <artifactId>nifi-microsoft-graph-services-api</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>

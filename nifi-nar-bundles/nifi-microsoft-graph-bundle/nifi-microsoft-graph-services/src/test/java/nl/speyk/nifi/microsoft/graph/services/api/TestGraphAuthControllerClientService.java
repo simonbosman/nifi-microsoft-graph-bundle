@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.speyk.nifi.microsoft.graph.auth;
+package nl.speyk.nifi.microsoft.graph.services.api;
 
+import nl.speyk.nifi.microsoft.graph.services.MicrosoftGraphCredentialControllerService;
 import org.apache.nifi.reporting.InitializationException;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
@@ -32,14 +33,14 @@ public class TestGraphAuthControllerClientService {
     @Test
     public void testService() throws InitializationException {
         final TestRunner runner = TestRunners.newTestRunner(TestProcessor.class);
-        final GraphAuthClientServiceImpl service = new GraphAuthClientServiceImpl();
+        final MicrosoftGraphCredentialControllerService service = new MicrosoftGraphCredentialControllerService();
         runner.addControllerService("test-good", service);
 
-        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_CLIENT_ID, "test-value");
-        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_TENANT_ID, "test-value");
-        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_CLIENT_SECRET, "test-value");
-        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_SCOPE, "test-value");
-        runner.setProperty(service, GraphAuthClientServiceImpl.AUTH_GRANT_TYPE, "test-value");
+        runner.setProperty(service, MicrosoftGraphCredentialControllerService.AUTH_CLIENT_ID, "test-value");
+        runner.setProperty(service, MicrosoftGraphCredentialControllerService.AUTH_TENANT_ID, "test-value");
+        runner.setProperty(service, MicrosoftGraphCredentialControllerService.AUTH_CLIENT_SECRET, "test-value");
+        runner.setProperty(service, MicrosoftGraphCredentialControllerService.AUTH_SCOPE, "test-value");
+        runner.setProperty(service, MicrosoftGraphCredentialControllerService.AUTH_GRANT_TYPE, "test-value");
 
         runner.enableControllerService(service);
 
