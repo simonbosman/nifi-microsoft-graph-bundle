@@ -31,4 +31,4 @@ do
     echo "Still waiting.."
 done
 
-printf  "\nNiFi started."
+echo  "NiFi started."

@@ -16,11 +16,14 @@
  */
 package nl.speyk.nifi.microsoft.graph.processors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.microsoft.graph.http.GraphServiceException;
+import com.microsoft.graph.models.Event;
 import com.microsoft.graph.serializer.*;
-import com.microsoft.graph.models.User;
 import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.requests.UserCollectionPage;
-import com.microsoft.graph.requests.UserCollectionRequest;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.nifi.components.PropertyDescriptor;
@@ -41,18 +44,19 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Tags({ "Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
+@Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
 @SeeAlso({})
-@ReadsAttributes({@ReadsAttribute(attribute="", description="")})
-@WritesAttributes({@WritesAttribute(attribute="", description="")})
+@ReadsAttributes({@ReadsAttribute(attribute = "", description = "")})
+@WritesAttributes({@WritesAttribute(attribute = "", description = "")})
 public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     public static final String GRAPH_METHOD_GET = "GET";
-    public static final String GRAPH_METHOD_POST= "POST";
+    public static final String GRAPH_METHOD_POST = "POST";
     public static final String GRAPH_METHOD_PATCH = "PATCH";
     public static final String GRAPH_METHOD_DELETE = "DELETE";
 
@@ -74,26 +78,40 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             .build();
 
 
-    public static final Relationship MY_RELATIONSHIP = new Relationship.Builder()
-            .name("MY_RELATIONSHIP")
-            .description("Example relationship")
+    public static final Relationship REL_SUCCESS = new Relationship.Builder()
+            .name("success")
+            .description(
+                    "Appointments that have been successfully written to Microsoft Graph are transferred to this relationship")
             .build();
+    public static final Relationship REL_FAILURE = new Relationship.Builder()
+            .name("failure")
+            .description(
+                    "Appointments that could not be written to Microsoft Graph for some reason are transferred to this relationship")
+            .build();
+
 
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
 
+    private String toPrettyFormat(String jsonString)
+    {
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJson = gson.toJson(json);
+
+        return prettyJson;
+    }
     @Override
     protected void init(final ProcessorInitializationContext context) {
 
-        final List<PropertyDescriptor> descriptors = new ArrayList<>();
-        descriptors.add(GRAPH_CONTROLLER_ID);
-        descriptors.add(GRAPH_PROP_METHOD);
-
-        final Set<Relationship> relationships = new HashSet<>();
-        relationships.add(MY_RELATIONSHIP);
-        this.relationships = Collections.unmodifiableSet(relationships);
-        this.descriptors = Collections.unmodifiableList(descriptors);
+        this.relationships = Set.of(REL_SUCCESS, REL_FAILURE);
+        this.descriptors = Collections.unmodifiableList(Arrays.asList(
+                GRAPH_CONTROLLER_ID,
+                GRAPH_PROP_METHOD
+        ));
     }
 
     @Override
@@ -106,11 +124,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         return descriptors;
     }
 
-    //TODO: put in abstract base class
     @OnScheduled
     public void onScheduled(final ProcessContext context) {
-
-        final ComponentLog log = getLogger();
 
         if (msGraphClientAtomicRef.get() != null) {
             return;
@@ -126,44 +141,48 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
 
         final ComponentLog logger = getLogger();
+        final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
 
         FlowFile flowFile = session.get();
-        if ( flowFile == null ) {
+        if (!"GET".equals(httpMethod) & flowFile == null) {
             return;
         }
 
-       try {
-           UserCollectionPage users =  msGraphClientAtomicRef.get()
-                   .users()
-                   .buildRequest()
-                   .get();
+        if (msGraphClientAtomicRef.get() == null) {
+            logger.error("Failed to hadle an event in Microsoft Graph");
+            flowFile = session.penalize(flowFile);
+            session.transfer(flowFile, REL_FAILURE);
+            return;
+        }
 
-           List<User> usersList = users.getCurrentPage();
+        try {
+            ISerializer serializer = Objects.requireNonNull(msGraphClientAtomicRef.get()
+                    .getHttpProvider(), "Microsoft Graph Client has no HTTP provider.")
+                    .getSerializer();
 
-           //TODO: Do a case switch on given param GET, POST, PATCH Look for inspiration at InvokeHTTP
-           UserCollectionRequest userCollectionRequest = msGraphClientAtomicRef.get().users().buildRequest();
+            final String upnName = flowFile.getAttribute("upn-name");
+            final Event event = serializer.deserializeObject(session.read(flowFile), Event.class);
+            event.transactionId = flowFile.getAttribute("content_SHA3-512");
 
-           UserCollectionPage userCollectionPage = (UserCollectionPage) UserCollectionRequest.class
-                   .getMethod("GET".toLowerCase())
-                   .invoke(userCollectionRequest);
+            final Event eventCreated;
+            eventCreated = msGraphClientAtomicRef.get()
+                    .users(upnName)
+                    .events()
+                    .buildRequest()
+                    .post(event);
 
-           ISerializer serializer = Objects.requireNonNull(msGraphClientAtomicRef.get()
-                   .getHttpProvider(), "Microsoft Graph Client has no HTTP provider.")
-                   .getSerializer();
+            String header = "\n\nRESPONSE FROM MICROSOFT GRAPH\n\n";
+            String json = header + toPrettyFormat(serializer.serializeObject(eventCreated));
 
-           User usr = msGraphClientAtomicRef.get()
-                   .users("simon@speykintegrations.onmicrosoft.com")
-                   .buildRequest()
-                   .get();
+            session.append(flowFile, out -> out.write(json.getBytes(StandardCharsets.UTF_8)));
+            session.transfer(flowFile, REL_SUCCESS);
 
-           String json = serializer.serializeObject(usersList.get(0)).toString();
-           String json2 = serializer.serializeObject(users);
-
-           String s = "wait";
-       } catch (Exception ex) {
-           logger.error("Getting users from Microsoft Graph failed.");
-           throw new ProcessException(ex);
-       }
+        } catch (GraphServiceException ex) {
+            logger.error("Failed to handle an event in Microsoft Graph", ex.getMessage());
+            flowFile = session.penalize(flowFile);
+            session.transfer(flowFile, REL_FAILURE);
+            throw new ProcessException(ex);
+        }
     }
 }
 

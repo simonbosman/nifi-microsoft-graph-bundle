@@ -46,6 +46,12 @@
             <artifactId>nifi-microsoft-graph-services</artifactId>
             <version>0.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.nifi</groupId>
+            <artifactId>nifi-standard-record-utils</artifactId>
+            <version>1.13.2</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
 </project>
