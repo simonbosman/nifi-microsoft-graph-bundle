@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<template encoding-version="1.3">
+    <description></description>
+    <groupId>a2407fb9-0178-1000-5dd9-6e17356e6243</groupId>
+    <name>Graph Api Calendar Template</name>
+    <snippet>
+        <controllerServices>
+            <id>0f4c1041-8fe7-3bb8-0000-000000000000</id>
+            <parentGroupId>7314d3f5-2a79-3052-0000-000000000000</parentGroupId>
+            <bundle>
+                <artifact>nifi-microsoft-graph-services-nar</artifact>
+                <group>nl.speyk.nifi</group>
+                <version>0.1.0</version>
+            </bundle>
+            <comments></comments>
+            <descriptors>
+                <entry>
+                    <key>mg-cs-auth-grant-type</key>
+                    <value>
+                        <name>mg-cs-auth-grant-type</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-client-id</key>
+                    <value>
+                        <name>mg-cs-auth-client-id</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-client-secret</key>
+                    <value>
+                        <name>mg-cs-auth-client-secret</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-tenant-id</key>
+                    <value>
+                        <name>mg-cs-auth-tenant-id</name>
+                    </value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-scope</key>
+                    <value>
+                        <name>mg-cs-auth-scope</name>
+                    </value>
+                </entry>
+            </descriptors>
+            <name>MicrosoftGraphCredentialControllerService</name>
+            <persistsState>false</persistsState>
+            <properties>
+                <entry>
+                    <key>mg-cs-auth-grant-type</key>
+                    <value>client_credentials</value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-client-id</key>
+                    <value>4dcf450b-1c52-4ab4-8c21-2650e1563435</value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-client-secret</key>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-tenant-id</key>
+                    <value>4d9d7628-507b-45a9-b659-03d1f09d16bf</value>
+                </entry>
+                <entry>
+                    <key>mg-cs-auth-scope</key>
+                    <value>https://graph.microsoft.com/.default</value>
+                </entry>
+            </properties>
+            <state>ENABLED</state>
+            <type>nl.speyk.nifi.microsoft.graph.services.MicrosoftGraphCredentialControllerService</type>
+        </controllerServices>
+        <processGroups>
+            <id>09628ae4-e2b6-303a-0000-000000000000</id>
+            <parentGroupId>7314d3f5-2a79-3052-0000-000000000000</parentGroupId>
+            <position>
+                <x>0.0</x>
+                <y>0.0</y>
+            </position>
+            <comments></comments>
+            <contents>
+                <connections>
+                    <id>0ef12990-98a9-3bf9-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <bends>
+                        <x>1029.0</x>
+                        <y>-1121.0</y>
+                    </bends>
+                    <bends>
+                        <x>1029.0</x>
+                        <y>-1071.0</y>
+                    </bends>
+                    <destination>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>b06057a5-1022-327e-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>failure</selectedRelationships>
+                    <source>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>b06057a5-1022-327e-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>4341f38c-0ae6-3f5d-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>b06057a5-1022-327e-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>55ae03cb-fbb9-3604-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>446a5e9f-2a66-3c54-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <destination>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>e8da06c0-78dd-32e2-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>success</selectedRelationships>
+                    <source>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>b06057a5-1022-327e-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <connections>
+                    <id>d0744368-d34f-37f2-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+                    <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+                    <bends>
+                        <x>1030.5509033203125</x>
+                        <y>-859.107666015625</y>
+                    </bends>
+                    <bends>
+                        <x>1030.5509033203125</x>
+                        <y>-809.107666015625</y>
+                    </bends>
+                    <destination>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>e8da06c0-78dd-32e2-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </destination>
+                    <flowFileExpiration>0 sec</flowFileExpiration>
+                    <labelIndex>1</labelIndex>
+                    <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+                    <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+                    <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+                    <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+                    <name></name>
+                    <selectedRelationships>failure</selectedRelationships>
+                    <source>
+                        <groupId>09628ae4-e2b6-303a-0000-000000000000</groupId>
+                        <id>e8da06c0-78dd-32e2-0000-000000000000</id>
+                        <type>PROCESSOR</type>
+                    </source>
+                    <zIndex>0</zIndex>
+                </connections>
+                <processors>
+                    <id>55ae03cb-fbb9-3604-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>568.0</x>
+                        <y>-1384.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.13.2</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>File Size</key>
+<value>
+    <name>File Size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Batch Size</key>
+<value>
+    <name>Batch Size</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Data Format</key>
+<value>
+    <name>Data Format</name>
+</value>
+                            </entry>
+                            <entry>
+<key>Unique FlowFiles</key>
+<value>
+    <name>Unique FlowFiles</name>
+</value>
+                            </entry>
+                            <entry>
+<key>generate-ff-custom-text</key>
+<value>
+    <name>generate-ff-custom-text</name>
+</value>
+                            </entry>
+                            <entry>
+<key>character-set</key>
+<value>
+    <name>character-set</name>
+</value>
+                            </entry>
+                            <entry>
+<key>mime-type</key>
+<value>
+    <name>mime-type</name>
+</value>
+                            </entry>
+                            <entry>
+<key>upn-name</key>
+<value>
+    <name>upn-name</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>File Size</key>
+<value>10B</value>
+                            </entry>
+                            <entry>
+<key>Batch Size</key>
+<value>1</value>
+                            </entry>
+                            <entry>
+<key>Data Format</key>
+<value>Text</value>
+                            </entry>
+                            <entry>
+<key>Unique FlowFiles</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>generate-ff-custom-text</key>
+<value>{
+    "subject": "en-m1a",
+    "bodyPreview": "A description",
+    "body": {
+        "contentType": "text",
+        "content": "Automatische gegenereert door Speyk Integration Services."
+    },
+    "start": {
+        "dateTime": "2021-04-28T11:00:00.0000000",
+        "timeZone": "UTC"
+    },
+    "end": {
+        "dateTime": "2021-04-28T11:30:00.0000000",
+        "timeZone": "UTC"
+    },
+    "location": {
+        "displayName": "a028",
+        "locationType": "default",
+        "uniqueIdType": "unknown",
+        "address": {},
+        "coordinates": {}
+    },
+    "attendees": [],
+    "organizer": {
+        "emailAddress": {
+            "name": "Simon Bosman",
+            "address": "simon@speykintegrations.onmicrosoft.com"
+        }
+    }
+}</value>
+                            </entry>
+                            <entry>
+<key>character-set</key>
+<value>UTF-8</value>
+                            </entry>
+                            <entry>
+<key>mime-type</key>
+<value>application/json</value>
+                            </entry>
+                            <entry>
+<key>upn-name</key>
+<value>simon@speykintegrations.onmicrosoft.com</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>5 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>GenerateFlowFile</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>STOPPED</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.GenerateFlowFile</type>
+                </processors>
+                <processors>
+                    <id>b06057a5-1022-327e-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>560.0</x>
+                        <y>-1160.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-standard-nar</artifact>
+                        <group>org.apache.nifi</group>
+                        <version>1.13.2</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>fail_when_empty</key>
+<value>
+    <name>fail_when_empty</name>
+</value>
+                            </entry>
+                            <entry>
+<key>hash_algorithm</key>
+<value>
+    <name>hash_algorithm</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>fail_when_empty</key>
+<value>false</value>
+                            </entry>
+                            <entry>
+<key>hash_algorithm</key>
+<value>SHA3-512</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>Create TransactionId from message</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>failure</name>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>STOPPED</state>
+                    <style/>
+                    <type>org.apache.nifi.processors.standard.CryptographicHashContent</type>
+                </processors>
+                <processors>
+                    <id>e8da06c0-78dd-32e2-0000-000000000000</id>
+                    <parentGroupId>09628ae4-e2b6-303a-0000-000000000000</parentGroupId>
+                    <position>
+                        <x>560.0</x>
+                        <y>-904.0</y>
+                    </position>
+                    <bundle>
+                        <artifact>nifi-microsoft-graph-processors-nar</artifact>
+                        <group>nl.speyk.nifi</group>
+                        <version>0.1.0</version>
+                    </bundle>
+                    <config>
+                        <bulletinLevel>WARN</bulletinLevel>
+                        <comments></comments>
+                        <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                        <descriptors>
+                            <entry>
+<key>mg-cs-auth-controller-id</key>
+<value>
+    <identifiesControllerService>nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService</identifiesControllerService>
+    <name>mg-cs-auth-controller-id</name>
+</value>
+                            </entry>
+                            <entry>
+<key>mg-cs-graph-prop-method</key>
+<value>
+    <name>mg-cs-graph-prop-method</name>
+</value>
+                            </entry>
+                        </descriptors>
+                        <executionNode>ALL</executionNode>
+                        <lossTolerant>false</lossTolerant>
+                        <penaltyDuration>30 sec</penaltyDuration>
+                        <properties>
+                            <entry>
+<key>mg-cs-auth-controller-id</key>
+<value>0f4c1041-8fe7-3bb8-0000-000000000000</value>
+                            </entry>
+                            <entry>
+<key>mg-cs-graph-prop-method</key>
+<value>POST</value>
+                            </entry>
+                        </properties>
+                        <runDurationMillis>0</runDurationMillis>
+                        <schedulingPeriod>0 sec</schedulingPeriod>
+                        <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                        <yieldDuration>1 sec</yieldDuration>
+                    </config>
+                    <executionNodeRestricted>false</executionNodeRestricted>
+                    <name>InvokeMicrosoftGraphCalendar</name>
+                    <relationships>
+                        <autoTerminate>false</autoTerminate>
+                        <name>failure</name>
+                    </relationships>
+                    <relationships>
+                        <autoTerminate>true</autoTerminate>
+                        <name>success</name>
+                    </relationships>
+                    <state>STOPPED</state>
+                    <style/>
+                    <type>nl.speyk.nifi.microsoft.graph.processors.InvokeMicrosoftGraphCalendar</type>
+                </processors>
+            </contents>
+            <flowfileConcurrency>UNBOUNDED</flowfileConcurrency>
+            <flowfileOutboundPolicy>STREAM_WHEN_AVAILABLE</flowfileOutboundPolicy>
+            <name>Graph Api Calendar </name>
+            <variables/>
+        </processGroups>
+    </snippet>
+    <timestamp>04/28/2021 20:34:40 CEST</timestamp>
+</template>

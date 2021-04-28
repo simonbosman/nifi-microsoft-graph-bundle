@@ -149,7 +149,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         }
 
         if (msGraphClientAtomicRef.get() == null) {
-            logger.error("Failed to hadle an event in Microsoft Graph");
+            logger.error("Failed to handle an event in Microsoft Graph");
             flowFile = session.penalize(flowFile);
             session.transfer(flowFile, REL_FAILURE);
             return;
