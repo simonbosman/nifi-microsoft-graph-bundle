@@ -94,24 +94,17 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
 
-    private String toPrettyFormat(String jsonString)
-    {
-        JsonParser parser = new JsonParser();
-        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+    private String toPrettyFormat(String jsonString) {
 
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String prettyJson = gson.toJson(json);
-
-        return prettyJson;
+        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(jsonString);
     }
+
     @Override
     protected void init(final ProcessorInitializationContext context) {
 
         this.relationships = Set.of(REL_SUCCESS, REL_FAILURE);
-        this.descriptors = Collections.unmodifiableList(Arrays.asList(
-                GRAPH_CONTROLLER_ID,
-                GRAPH_PROP_METHOD
-        ));
+        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_PROP_METHOD);
     }
 
     @Override
@@ -144,12 +137,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
 
         FlowFile flowFile = session.get();
-        if (!"GET".equals(httpMethod) & flowFile == null) {
+        if (!httpMethod.equals(GRAPH_METHOD_GET) & flowFile == null) {
             return;
         }
 
         if (msGraphClientAtomicRef.get() == null) {
-            logger.error("Failed to handle an event in Microsoft Graph");
+            logger.error("Microsoft Graph Client is not available.");
             flowFile = session.penalize(flowFile);
             session.transfer(flowFile, REL_FAILURE);
             return;
