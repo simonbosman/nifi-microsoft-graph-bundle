@@ -25,27 +25,21 @@ import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
 import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.core.ClientException;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
-import org.apache.nifi.annotation.lifecycle.OnDisabled;
 import org.apache.nifi.annotation.lifecycle.OnEnabled;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.controller.AbstractControllerService;
 import org.apache.nifi.controller.ConfigurationContext;
-import org.apache.nifi.reporting.InitializationException;
 import com.azure.identity.ClientSecretCredential;
-import org.jetbrains.annotations.NotNull;
 
-@Tags({ "Speyk", "Microsoft", "Graph", "Authentication", "Service", "Controller", "Cloud", "Credentials"})
+@Tags({"Speyk", "Microsoft", "Graph", "Authentication", "Service", "Controller", "Cloud", "Credentials"})
 @CapabilityDescription("Defines credentials for Microsoft Graph Processors.")
 public class MicrosoftGraphCredentialControllerService extends AbstractControllerService implements MicrosoftGraphCredentialService {
 
     private static final List<PropertyDescriptor> properties;
-
-    private GraphServiceClient<Request> graphClient;
 
     static {
         final List<PropertyDescriptor> props = new ArrayList<>();
@@ -57,29 +51,19 @@ public class MicrosoftGraphCredentialControllerService extends AbstractControlle
         properties = Collections.unmodifiableList(props);
     }
 
+    private ConfigurationContext context;
+
     @Override
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
         return properties;
     }
 
     @OnEnabled
-    public void onEnabled(@NotNull final ConfigurationContext context) throws InitializationException {
-
-        try {
-            setupGraphClient(context);
-        }
-        catch (Exception ex) {
-            getLogger().error("Could not initialize Microsoft Graph Client.", ex);
-            throw new InitializationException(ex);
-        }
+    public void onEnabled(ConfigurationContext context) {
+        this.context = context;
     }
 
-    @OnDisabled
-    public void shutdown() {
-        this.graphClient = null;
-    }
-
-    private void setupGraphClient(ConfigurationContext context) throws InitializationException {
+    private GraphServiceClient setupGraphClient(ConfigurationContext context) {
 
         final String clientId = context.getProperty(AUTH_CLIENT_ID).getValue();
         final String tenantId = context.getProperty(AUTH_TENANT_ID).getValue();
@@ -94,20 +78,16 @@ public class MicrosoftGraphCredentialControllerService extends AbstractControlle
 
         final IAuthenticationProvider authProvider = new TokenCredentialAuthProvider(scopes, defaultCredential);
 
-        try {
-            this.graphClient = GraphServiceClient
+        final GraphServiceClient graphClient = GraphServiceClient
                 .builder()
                 .authenticationProvider(authProvider)
                 .buildClient();
-        }
-        catch (ClientException e) {
-            getLogger().error("Error building Microsoft Graph Client from the supplied configuration.", e);
-            throw new InitializationException(e);
-        }
+
+        return graphClient;
     }
 
     @Override
     public GraphServiceClient<Request> getGraphClient() {
-        return graphClient;
+        return setupGraphClient(this.context);
     }
 }

@@ -20,12 +20,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.microsoft.graph.http.GraphServiceException;
+import com.microsoft.graph.core.ClientException;
 import com.microsoft.graph.models.Event;
 import com.microsoft.graph.serializer.*;
 import com.microsoft.graph.requests.GraphServiceClient;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
+import org.apache.commons.io.IOUtils;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.annotation.behavior.ReadsAttribute;
@@ -44,6 +45,7 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -96,8 +98,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     private String toPrettyFormat(String jsonString) {
 
-        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(jsonString);
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJson = gson.toJson(json);
+
+        return prettyJson;
     }
 
     @Override
@@ -153,25 +160,27 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     .getHttpProvider(), "Microsoft Graph Client has no HTTP provider.")
                     .getSerializer();
 
+            //TODO: Put this in a proerty and use expression language
             final String upnName = flowFile.getAttribute("upn-name");
             final Event event = serializer.deserializeObject(session.read(flowFile), Event.class);
+            //TODO: Put this in a proerty and use expression language
             event.transactionId = flowFile.getAttribute("content_SHA3-512");
 
             final Event eventCreated;
-            eventCreated = msGraphClientAtomicRef.get()
+            eventCreated = Objects.requireNonNull(msGraphClientAtomicRef.get()
                     .users(upnName)
                     .events()
-                    .buildRequest()
+                    .buildRequest(), "Could not make Microsoft Graph buildRequest.")
                     .post(event);
 
             String header = "\n\nRESPONSE FROM MICROSOFT GRAPH\n\n";
             String json = header + toPrettyFormat(serializer.serializeObject(eventCreated));
 
-            session.append(flowFile, out -> out.write(json.getBytes(StandardCharsets.UTF_8)));
+            session.append(flowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
             session.transfer(flowFile, REL_SUCCESS);
 
-        } catch (GraphServiceException ex) {
-            logger.error("Failed to handle an event in Microsoft Graph", ex.getMessage());
+        } catch (ClientException ex) {
+            logger.error("Failed to make a Microsoft Graph request.", ex.getMessage());
             flowFile = session.penalize(flowFile);
             session.transfer(flowFile, REL_FAILURE);
             throw new ProcessException(ex);

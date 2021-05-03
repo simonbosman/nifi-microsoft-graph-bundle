@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 
-NIFI_URL="http://localhost:7777/nifi-api/system-diagnostics"
+NIFI_HOME="/Users/simon/nifi/nifi-1.13.2/"
 PROJECT_HOME="//Users/simon/IdeaProjects/nifi/nifi-nar-bundles/nifi-microsoft-graph-bundle/"
+NIFI_URL="http://localhost:7777/nifi-api/system-diagnostics"
+
 printf "Compiling..\n"
 
 res=$(mvn clean install -T5 | grep ERROR)
@@ -15,13 +17,13 @@ fi
 
 printf "Done compiling.\n\n"
 
-cp ${PROJECT_HOME}nifi-microsoft-graph-services-api-nar/target/nifi-microsoft-graph-services-api-nar-0.1.0.nar ~/nifi/nifi-1.13.2/extensions
-cp ${PROJECT_HOME}nifi-microsoft-graph-services-nar/target/nifi-microsoft-graph-services-nar-0.1.0.nar ~/nifi/nifi-1.13.2/extensions
-cp ${PROJECT_HOME}nifi-microsoft-graph-processors-nar/target/nifi-microsoft-graph-processors-nar-0.1.0.nar ~/nifi/nifi-1.13.2/extensions
+cp ${PROJECT_HOME}nifi-microsoft-graph-services-api-nar/target/nifi-microsoft-graph-services-api-nar-0.1.0.nar ${NIFI_HOME}extensions
+cp ${PROJECT_HOME}nifi-microsoft-graph-services-nar/target/nifi-microsoft-graph-services-nar-0.1.0.nar ${NIFI_HOME}extensions
+cp ${PROJECT_HOME}nifi-microsoft-graph-processors-nar/target/nifi-microsoft-graph-processors-nar-0.1.0.nar ${NIFI_HOME}extensions
 
 echo "Restarting NiFi."
 
-~/nifi/nifi-1.13.2/bin/nifi.sh restart > /dev/null 2>&1
+${NIFI_HOME}bin/nifi.sh restart > /dev/null 2>&1
 
 printf "Waiting for NiFi to come alive.\n"
 
