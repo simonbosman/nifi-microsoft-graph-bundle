@@ -142,7 +142,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
         final ComponentLog logger = getLogger();
         final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
-
+        /*
+        TODO: Implement JSON BATCHING
+        https://docs.microsoft.com/en-us/graph/sdks/batch-requests?tabs=java
+        */
         FlowFile flowFile = session.get();
         if (!httpMethod.equals(GRAPH_METHOD_GET) & flowFile == null) {
             return;
@@ -172,6 +175,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     .events()
                     .buildRequest(), "Could not make Microsoft Graph buildRequest.")
                     .post(event);
+
 
             String header = "\n\nRESPONSE FROM MICROSOFT GRAPH\n\n";
             String json = header + toPrettyFormat(serializer.serializeObject(eventCreated));
