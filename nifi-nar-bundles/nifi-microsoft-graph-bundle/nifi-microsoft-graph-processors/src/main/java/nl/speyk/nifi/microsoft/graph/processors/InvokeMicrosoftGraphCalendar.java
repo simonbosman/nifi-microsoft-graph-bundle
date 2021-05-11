@@ -45,6 +45,8 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -85,6 +87,11 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             .description(
                     "Appointments that have been successfully written to Microsoft Graph are transferred to this relationship")
             .build();
+    public static final Relationship REL_ORIGINAL = new Relationship.Builder()
+            .name("original")
+            .description(
+                    "The original appointments are transferred to this relationship")
+            .build();
     public static final Relationship REL_FAILURE = new Relationship.Builder()
             .name("failure")
             .description(
@@ -96,21 +103,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
 
-    private String toPrettyFormat(String jsonString) {
-
-        JsonParser parser = new JsonParser();
-        JsonObject json = parser.parse(jsonString).getAsJsonObject();
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String prettyJson = gson.toJson(json);
-
-        return prettyJson;
-    }
-
     @Override
     protected void init(final ProcessorInitializationContext context) {
 
-        this.relationships = Set.of(REL_SUCCESS, REL_FAILURE);
+        this.relationships = Set.of(REL_SUCCESS, REL_FAILURE, REL_ORIGINAL);
         this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_PROP_METHOD);
     }
 
@@ -142,10 +138,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
         final ComponentLog logger = getLogger();
         final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
-        /*
-        TODO: Implement JSON BATCHING
-        https://docs.microsoft.com/en-us/graph/sdks/batch-requests?tabs=java
-        */
+
         FlowFile flowFile = session.get();
         if (!httpMethod.equals(GRAPH_METHOD_GET) & flowFile == null) {
             return;
@@ -163,27 +156,31 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     .getHttpProvider(), "Microsoft Graph Client has no HTTP provider.")
                     .getSerializer();
 
-            //TODO: Put this in a proerty and use expression language
-            final String upnName = flowFile.getAttribute("upn-name");
-            final Event event = serializer.deserializeObject(session.read(flowFile), Event.class);
-            //TODO: Put this in a proerty and use expression language
-            event.transactionId = flowFile.getAttribute("content_SHA3-512");
+            final String eventsJson;
+            final InputStream inputStream = session.read(flowFile);
+
+            eventsJson = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            inputStream.close();
+
+            Gson gson = new Gson();
+            Event[] events = gson.fromJson(eventsJson, Event[].class);
 
             final Event eventCreated;
             eventCreated = Objects.requireNonNull(msGraphClientAtomicRef.get()
-                    .users(upnName)
+                    .users(events[0].organizer.emailAddress.address)
                     .events()
                     .buildRequest(), "Could not make Microsoft Graph buildRequest.")
-                    .post(event);
+                    .post(events[0]);
 
+            session.transfer(flowFile, REL_ORIGINAL);
 
-            String header = "\n\nRESPONSE FROM MICROSOFT GRAPH\n\n";
-            String json = header + toPrettyFormat(serializer.serializeObject(eventCreated));
+            final FlowFile succesFlowFile = session.create();
+            String json = serializer.serializeObject(eventCreated);
 
-            session.append(flowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-            session.transfer(flowFile, REL_SUCCESS);
+            session.append(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+            session.transfer(succesFlowFile, REL_SUCCESS);
 
-        } catch (ClientException ex) {
+        } catch (ClientException | IOException ex) {
             logger.error("Failed to make a Microsoft Graph request.", ex.getMessage());
             flowFile = session.penalize(flowFile);
             session.transfer(flowFile, REL_FAILURE);
