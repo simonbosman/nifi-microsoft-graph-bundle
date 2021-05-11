@@ -20,12 +20,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.graph.authentication.IAuthenticationProvider;
 import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
+import com.microsoft.graph.httpcore.HttpClients;
 import com.microsoft.graph.requests.GraphServiceClient;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
+import okhttp3.ConnectionPool;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
@@ -78,9 +82,15 @@ public class MicrosoftGraphCredentialControllerService extends AbstractControlle
 
         final IAuthenticationProvider authProvider = new TokenCredentialAuthProvider(scopes, defaultCredential);
 
+        final OkHttpClient httpClient = HttpClients.createDefault(authProvider)
+                .newBuilder()
+                .followSslRedirects(false)
+                .connectionPool( new ConnectionPool(256, 180, TimeUnit.SECONDS))
+                .build();
+
         final GraphServiceClient graphClient = GraphServiceClient
                 .builder()
-                .authenticationProvider(authProvider)
+                .httpClient(httpClient)
                 .buildClient();
 
         return graphClient;

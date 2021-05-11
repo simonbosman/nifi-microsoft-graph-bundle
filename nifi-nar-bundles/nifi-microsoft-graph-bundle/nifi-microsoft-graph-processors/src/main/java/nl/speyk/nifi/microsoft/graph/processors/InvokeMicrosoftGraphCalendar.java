@@ -45,9 +45,7 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,14 +53,17 @@ import java.util.concurrent.atomic.AtomicReference;
 @Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
 @SeeAlso({})
-@ReadsAttributes({@ReadsAttribute(attribute = "", description = "")})
-@WritesAttributes({@WritesAttribute(attribute = "", description = "")})
+@ReadsAttributes({@ReadsAttribute(attribute = "i", description = "The Java exception class raised when the processor fails")})
+@WritesAttributes({@WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "he Java exception message raised when the processor fails")})
 public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     public static final String GRAPH_METHOD_GET = "GET";
     public static final String GRAPH_METHOD_POST = "POST";
     public static final String GRAPH_METHOD_PATCH = "PATCH";
     public static final String GRAPH_METHOD_DELETE = "DELETE";
+    public final static String EXCEPTION_CLASS = "invokeMSGraph.java.exception.class";
+    public final static String EXCEPTION_MESSAGE = "invokeMSGraph.java.exception.message";
+
 
     public final static PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor.Builder()
             .name("mg-cs-auth-controller-id")
@@ -103,9 +104,17 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
 
+    private String toPrettyFormat(String jsonString) {
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJson = gson.toJson(json);
+        return prettyJson;
+    }
+
     @Override
     protected void init(final ProcessorInitializationContext context) {
-
         this.relationships = Set.of(REL_SUCCESS, REL_FAILURE, REL_ORIGINAL);
         this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_PROP_METHOD);
     }
@@ -135,19 +144,19 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     @Override
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
-
         final ComponentLog logger = getLogger();
         final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
 
-        FlowFile flowFile = session.get();
-        if (!httpMethod.equals(GRAPH_METHOD_GET) & flowFile == null) {
+        FlowFile requestFlowFile = session.get();
+
+        if (!httpMethod.equals(GRAPH_METHOD_GET) & requestFlowFile == null) {
             return;
         }
 
         if (msGraphClientAtomicRef.get() == null) {
             logger.error("Microsoft Graph Client is not available.");
-            flowFile = session.penalize(flowFile);
-            session.transfer(flowFile, REL_FAILURE);
+            requestFlowFile = session.penalize(requestFlowFile);
+            session.transfer(requestFlowFile, REL_FAILURE);
             return;
         }
 
@@ -157,7 +166,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     .getSerializer();
 
             final String eventsJson;
-            final InputStream inputStream = session.read(flowFile);
+            final InputStream inputStream = session.read(requestFlowFile);
 
             eventsJson = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             inputStream.close();
@@ -172,19 +181,27 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     .buildRequest(), "Could not make Microsoft Graph buildRequest.")
                     .post(events[0]);
 
-            session.transfer(flowFile, REL_ORIGINAL);
-
             final FlowFile succesFlowFile = session.create();
-            String json = serializer.serializeObject(eventCreated);
+            String json = toPrettyFormat(serializer.serializeObject(eventCreated));
 
-            session.append(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+            session.write(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
             session.transfer(succesFlowFile, REL_SUCCESS);
 
-        } catch (ClientException | IOException ex) {
-            logger.error("Failed to make a Microsoft Graph request.", ex.getMessage());
-            flowFile = session.penalize(flowFile);
-            session.transfer(flowFile, REL_FAILURE);
-            throw new ProcessException(ex);
+            session.transfer(requestFlowFile, REL_ORIGINAL);
+
+        } catch (final Exception e) {
+            // penalize or yield
+            if (requestFlowFile != null) {
+                logger.error("Routing to {} due to exception: {}", new Object[]{REL_FAILURE.getName(), e}, e);
+                requestFlowFile = session.penalize(requestFlowFile);
+                requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_CLASS, e.getClass().getName());
+                requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_MESSAGE, e.getMessage());
+                // transfer original to failure
+                session.transfer(requestFlowFile, REL_FAILURE);
+            } else {
+                logger.error("Yielding processor due to exception encountered as a source processor: {}", e);
+                context.yield();
+            }
         }
     }
 }
