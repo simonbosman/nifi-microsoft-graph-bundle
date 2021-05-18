@@ -16,13 +16,15 @@
  */
 package nl.speyk.nifi.microsoft.graph.processors;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.microsoft.graph.core.ClientException;
+import com.microsoft.graph.content.BatchRequestContent;
+import com.microsoft.graph.content.BatchResponseContent;
+import com.microsoft.graph.content.BatchResponseStep;
+import com.microsoft.graph.http.HttpMethod;
+import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.Event;
-import com.microsoft.graph.serializer.*;
 import com.microsoft.graph.requests.GraphServiceClient;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
@@ -47,23 +49,32 @@ import org.apache.nifi.processor.Relationship;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
 @SeeAlso({})
-@ReadsAttributes({@ReadsAttribute(attribute = "i", description = "The Java exception class raised when the processor fails")})
-@WritesAttributes({@WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "he Java exception message raised when the processor fails")})
+@ReadsAttributes({})
+@WritesAttributes({
+        @WritesAttribute(attribute = "invokeMSGraph.java.exception.class", description = "The Java exception class raised when the processor fails"),
+        @WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "The Java exception message raised when the processor fails")})
 public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
-    public static final String GRAPH_METHOD_GET = "GET";
-    public static final String GRAPH_METHOD_POST = "POST";
-    public static final String GRAPH_METHOD_PATCH = "PATCH";
-    public static final String GRAPH_METHOD_DELETE = "DELETE";
+    public final static String GRAPH_METHOD_GET = "GET";
+    public final static String GRAPH_METHOD_POST = "POST";
+    public final static String GRAPH_METHOD_PATCH = "PATCH";
+    public final static String GRAPH_METHOD_DELETE = "DELETE";
+    public final static int GRAPH_MAILBOX_CONCURRENCY_LIMIT = 4;
+    public final static int GRAPH_HTTP_TO_MANY_REQUESTS = 429;
+    public final static int GRAPH_HTTP_SERVICE_UNAVAILABLE = 503;
+    public final static int GRAPH_HTTP_GATEWAY_TIMEOUT = 504;
     public final static String EXCEPTION_CLASS = "invokeMSGraph.java.exception.class";
     public final static String EXCEPTION_MESSAGE = "invokeMSGraph.java.exception.message";
-
 
     public final static PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor.Builder()
             .name("mg-cs-auth-controller-id")
@@ -88,6 +99,11 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             .description(
                     "Appointments that have been successfully written to Microsoft Graph are transferred to this relationship")
             .build();
+    public static final Relationship REL_RETRY = new Relationship.Builder()
+            .name("retry")
+            .description(
+                    "Appointments for retrying are transferred to this relationship")
+            .build();
     public static final Relationship REL_ORIGINAL = new Relationship.Builder()
             .name("original")
             .description(
@@ -104,18 +120,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
 
-    private String toPrettyFormat(String jsonString) {
-        JsonParser parser = new JsonParser();
-        JsonObject json = parser.parse(jsonString).getAsJsonObject();
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String prettyJson = gson.toJson(json);
-        return prettyJson;
-    }
-
     @Override
     protected void init(final ProcessorInitializationContext context) {
-        this.relationships = Set.of(REL_SUCCESS, REL_FAILURE, REL_ORIGINAL);
+        this.relationships = Set.of(REL_SUCCESS, REL_RETRY, REL_FAILURE, REL_ORIGINAL);
         this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_PROP_METHOD);
     }
 
@@ -149,7 +156,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
         FlowFile requestFlowFile = session.get();
 
-        if (!httpMethod.equals(GRAPH_METHOD_GET) & requestFlowFile == null) {
+        if (requestFlowFile == null) {
             return;
         }
 
@@ -161,32 +168,66 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         }
 
         try {
-            ISerializer serializer = Objects.requireNonNull(msGraphClientAtomicRef.get()
-                    .getHttpProvider(), "Microsoft Graph Client has no HTTP provider.")
-                    .getSerializer();
-
-            final String eventsJson;
             final InputStream inputStream = session.read(requestFlowFile);
+            final String eventsJson;
 
             eventsJson = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             inputStream.close();
 
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             Event[] events = gson.fromJson(eventsJson, Event[].class);
 
-            final Event eventCreated;
-            eventCreated = Objects.requireNonNull(msGraphClientAtomicRef.get()
-                    .users(events[0].organizer.emailAddress.address)
-                    .events()
-                    .buildRequest(), "Could not make Microsoft Graph buildRequest.")
-                    .post(events[0]);
+            final Map<String, String> attributes = new Hashtable<>();
+            attributes.put("Content-Type", "application/json; charset=utf-8");
+            attributes.put("mime.type", "application/json");
 
-            final FlowFile succesFlowFile = session.create();
-            String json = toPrettyFormat(serializer.serializeObject(eventCreated));
+            final int[] errorCodes = {GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE, GRAPH_HTTP_GATEWAY_TIMEOUT};
 
-            session.write(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-            session.transfer(succesFlowFile, REL_SUCCESS);
+            for (List<Event> eventList : Lists.partition(Arrays.asList(events), GRAPH_MAILBOX_CONCURRENCY_LIMIT)) {
+                final BatchRequestContent batchRequestContent = new BatchRequestContent();
+                final Map<String, Event> idEvent = new Hashtable<>();
 
+                for (Event event : eventList) {
+                    idEvent.put(batchRequestContent.addBatchRequestStep(msGraphClientAtomicRef.get()
+                            .users(event.organizer.emailAddress.address)
+                            .events()
+                            .buildRequest(), HttpMethod.POST, event), event);
+                }
+
+                final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get()
+                        .batch()
+                        .buildRequest()
+                        .post(batchRequestContent);
+
+                for (BatchResponseStep batchResponseStep : batchResponseContent.responses) {
+                    if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
+                        final Event evt = (Event) batchResponseStep.getDeserializedBody(Event.class);
+                        String json = gson.toJson(evt, Event.class);
+
+                        FlowFile succesFlowFile = session.create();
+                        succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
+
+                        session.write(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+                        session.transfer(succesFlowFile, REL_SUCCESS);
+
+                    } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
+                        final Event[] evtRetry = {idEvent.get(batchResponseStep.id)};
+                        String json = gson.toJson(evtRetry, Event[].class);
+
+                        FlowFile retryFLowFile = session.create();
+                        retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
+
+                        session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+                        retryFLowFile = session.penalize(retryFLowFile);
+                        session.transfer(retryFLowFile, REL_RETRY);
+
+                    } else {
+                        //TODO: route every error ta faillure
+                        throw new ProcessException(String.format("Microsoft Graph error: %s", batchResponseStep.body));
+                    }
+                }
+            }
+            //The original flowfile hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
         } catch (final Exception e) {
