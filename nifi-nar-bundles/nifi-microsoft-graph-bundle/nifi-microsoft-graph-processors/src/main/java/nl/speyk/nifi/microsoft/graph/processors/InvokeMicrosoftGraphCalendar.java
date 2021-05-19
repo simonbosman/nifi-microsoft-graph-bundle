@@ -179,7 +179,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         try {
             /**
              * We expect a flow file with a JsonArray as content
-             * Every JsonObject in the array is an event rewsource type
+             * Every JsonObject in the array is an event rawsource type
              * @see <a href="https://docs.microsoft.com/en-us/graph/api/resources/event?view=graph-rest-1.0"</a>
              */
             final InputStream inputStream = session.read(requestFlowFile);
@@ -192,8 +192,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             JsonElement jsonElement = JsonParser.parseString(eventsJson);
 
-            // In case of a retry we get an Json Object else an Json Array
-            // make sure we always have an array of events.
+            // Make sure we always have an array of events.
             if (jsonElement.isJsonArray()) {
                 events = gson.fromJson(eventsJson, Event[].class);
             } else if (jsonElement.isJsonObject()) {
@@ -256,7 +255,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", "1");
                         }
                         session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-                        retryFLowFile = session.penalize(retryFLowFile);
                         session.transfer(retryFLowFile, REL_RETRY);
                     } else {
                         //This will throw a GraphServiceException or just return null
