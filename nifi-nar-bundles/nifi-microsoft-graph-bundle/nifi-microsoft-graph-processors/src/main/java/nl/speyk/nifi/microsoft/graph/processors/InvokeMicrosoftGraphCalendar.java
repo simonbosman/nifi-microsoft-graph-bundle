@@ -23,6 +23,7 @@ import com.google.gson.JsonParser;
 import com.microsoft.graph.content.BatchRequestContent;
 import com.microsoft.graph.content.BatchResponseContent;
 import com.microsoft.graph.content.BatchResponseStep;
+import com.microsoft.graph.core.ClientException;
 import com.microsoft.graph.http.GraphErrorResponse;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.http.HttpMethod;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
@@ -152,7 +154,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             return;
         }
 
-        // Get the controllerservice responsible for an authenticated graphclient
+        // Get the controllerservice responsible for an authenticated GraphClient
+        // We will reuse the build GraphClient, hence we put it in a an atomic reference
         MicrosoftGraphCredentialService microsoftGraphCredentialService = context.getProperty(GRAPH_CONTROLLER_ID)
                 .asControllerService(MicrosoftGraphCredentialService.class);
         msGraphClientAtomicRef.set(microsoftGraphCredentialService.getGraphClient());
@@ -164,7 +167,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
 
         FlowFile requestFlowFile = session.get();
-
         if (requestFlowFile == null) {
             return;
         }
@@ -246,14 +248,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
                         FlowFile retryFLowFile = session.create();
                         retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
+
                         //Use the RetryFLow processor for setting the max retries
-                        final String retries;
-                        if ((retries = requestFlowFile.getAttribute("flowfile.retries")) != null) {
-                            retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", retries);
-                        }
-                        else {
-                            retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", "1");
-                        }
+                        final String attrNumRetries = requestFlowFile.getAttribute("flowfile.retries");
+                        final String numRetries = (attrNumRetries != null) ? attrNumRetries : "1";
+
+                        retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", numRetries);
+
                         session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
                         session.transfer(retryFLowFile, REL_RETRY);
                     } else {
@@ -265,19 +266,40 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             // The original flowfile hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
-        } catch (final Exception e) {
-            // penalize or yield
-            if (requestFlowFile != null) {
-                logger.error("Routing to {} due to exception: {}", new Object[]{REL_FAILURE.getName(), e}, e);
-                requestFlowFile = session.penalize(requestFlowFile);
-                requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_CLASS, e.getClass().getName());
-                requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_MESSAGE, e.getMessage());
-                // transfer original to failure
-                session.transfer(requestFlowFile, REL_FAILURE);
-            } else {
-                logger.error("Yielding processor due to exception encountered as a source processor: {}", e);
-                context.yield();
-            }
+        }
+        catch (GraphServiceException exceptionGraph) {
+            //Error in performing request to Microsoft Graph
+            //We can't recover from this so route to failure handler
+            routToFaillure(requestFlowFile, logger, session, context, exceptionGraph);
+        }
+        // sometimes JSON batching causes socket timeouts; catch them and retry
+        catch (ClientException exceptionToRetry) {
+            logger.error("Failed to create an event in Microsoft Graph due network problems. {}. More detailed information may be available in " +
+                            "the NiFi logs.",
+                    new Object[]{exceptionToRetry.getLocalizedMessage()}, exceptionToRetry);
+            // transfer original to retry
+            session.transfer(requestFlowFile, REL_RETRY);
+            context.yield();
+        }
+        catch (final Exception e) {
+            routToFaillure(requestFlowFile, logger, session, context, e);
+        }
+    }
+
+    private void routToFaillure(FlowFile requestFlowFile, final ComponentLog logger,
+                                final ProcessSession session, final ProcessContext context, final Exception e) {
+        // penalize or yield
+        if (requestFlowFile != null) {
+            logger.error("Routing to {} due to exception: {}", new Object[]{REL_FAILURE.getName(), e}, e);
+            requestFlowFile = session.penalize(requestFlowFile);
+            requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_CLASS, e.getClass().getName());
+            requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_MESSAGE, e.getMessage() +
+                    Arrays.stream(e.getStackTrace()).collect(Collectors.toList()));
+            // transfer original to failure
+            session.transfer(requestFlowFile, REL_FAILURE);
+        } else {
+            logger.error("Yielding processor due to exception encountered as a source processor: {}", e);
+            context.yield();
         }
     }
 }

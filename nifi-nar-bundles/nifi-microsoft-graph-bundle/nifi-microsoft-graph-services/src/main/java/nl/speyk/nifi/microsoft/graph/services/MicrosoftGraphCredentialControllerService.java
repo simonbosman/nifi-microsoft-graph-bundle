@@ -82,10 +82,12 @@ public class MicrosoftGraphCredentialControllerService extends AbstractControlle
 
         final IAuthenticationProvider authProvider = new TokenCredentialAuthProvider(scopes, defaultCredential);
 
+        //We have a lot of connections to the graph api, hence we make a large connectionpool
         final OkHttpClient httpClient = HttpClients.createDefault(authProvider)
                 .newBuilder()
                 .followSslRedirects(false)
-                .connectionPool( new ConnectionPool(256, 180, TimeUnit.SECONDS))
+                .connectionPool( new ConnectionPool(256, 5, TimeUnit.MINUTES))
+                .connectTimeout(30L, TimeUnit.SECONDS)
                 .build();
 
         final GraphServiceClient graphClient = GraphServiceClient
