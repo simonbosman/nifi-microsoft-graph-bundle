@@ -1,0 +1,667 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%md\n## Moet een docent zichzelf kunnen klonen?",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-20T17:30:52+0200",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621521300185_1308776399",
+      "id": "paragraph_1621521300185_1308776399",
+      "dateCreated": "2021-05-20T16:35:00+0200",
+      "dateStarted": "2021-05-20T17:30:52+0200",
+      "dateFinished": "2021-05-20T17:30:52+0200",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:164118"
+    },
+    {
+      "text": "%md \n## Is een docent kloonbaar?\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-20T23:49:42+0200",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Is een docent kloonbaar?</h2>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621524764277_907389245",
+      "id": "paragraph_1621524764277_907389245",
+      "dateCreated": "2021-05-20T17:32:44+0200",
+      "dateStarted": "2021-05-20T23:49:42+0200",
+      "dateFinished": "2021-05-20T23:49:42+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164119"
+    },
+    {
+      "text": "%spark\n\nval appDF = spark.read.parquet(\"/tmp/parquet/magister_appointments.parquet\")\nval appSanDF = appDF.withColumn(\"Start\", to_timestamp(regexp_replace(appDF(\"Start\"), \"/\", \"-\"))).withColumn(\"Finish\", to_timestamp(regexp_replace(appDF(\"Finish\"), \"/\", \"-\"))).withColumn(\"LastChange\", to_timestamp(regexp_replace(appDF(\"LastChange\"), \"/\", \"-\")))\n\nappSanDF.printSchema\nappSanDF.createOrReplaceTempView(\"appointments\")\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-21T00:05:26+0200",
+      "progress": 100,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string",
+                      "Table": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "root\n |-- Code: long (nullable = true)\n |-- Id: long (nullable = true)\n |-- Subject: string (nullable = true)\n |-- Location: string (nullable = true)\n |-- Body: string (nullable = true)\n |-- Start: timestamp (nullable = true)\n |-- Finish: timestamp (nullable = true)\n |-- LastChange: timestamp (nullable = true)\n |-- Notification: string (nullable = true)\n |-- OutlookStatus: string (nullable = true)\n |-- Email_priv: string (nullable = true)\n\n\u001b[1m\u001b[34mappDF\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [Code: bigint, Id: bigint ... 9 more fields]\n\u001b[1m\u001b[34mappSanDF\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.DataFrame\u001b[0m = [Code: bigint, Id: bigint ... 9 more fields]\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://192.168.178.96:4040/jobs/job?id=349",
+              "$$hashKey": "object:173811"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621510338404_1235065433",
+      "id": "paragraph_1621510338404_1235065433",
+      "dateCreated": "2021-05-20T13:32:18+0200",
+      "dateStarted": "2021-05-21T00:05:26+0200",
+      "dateFinished": "2021-05-21T00:05:26+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164120"
+    },
+    {
+      "text": "%md\n# Volgens onze analyse WEL!\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-20T17:05:26+0200",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621522617063_447785591",
+      "id": "paragraph_1621522617063_447785591",
+      "dateCreated": "2021-05-20T16:56:57+0200",
+      "dateStarted": "2021-05-20T17:05:26+0200",
+      "dateFinished": "2021-05-20T17:05:26+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164121"
+    },
+    {
+      "text": "%md\n## Aantal afspraken",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-20T23:18:05+0200",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "aantal_afspraken": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Aantal afspraken</h2>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621545372602_1398491435",
+      "id": "paragraph_1621545372602_1398491435",
+      "dateCreated": "2021-05-20T23:16:12+0200",
+      "dateStarted": "2021-05-20T23:18:05+0200",
+      "dateFinished": "2021-05-20T23:18:05+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164122"
+    },
+    {
+      "text": "%spark\nspark.sql(\"select count(*) as aantal_afspraken from appointments\").show",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-21T00:05:57+0200",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "+----------------+\n|aantal_afspraken|\n+----------------+\n|           10671|\n+----------------+\n\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://192.168.178.96:4040/jobs/job?id=350",
+              "$$hashKey": "object:173848"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621545475750_1201319852",
+      "id": "paragraph_1621545475750_1201319852",
+      "dateCreated": "2021-05-20T23:17:55+0200",
+      "dateStarted": "2021-05-21T00:05:57+0200",
+      "dateFinished": "2021-05-21T00:05:57+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164123"
+    },
+    {
+      "text": "%sql\nselect  d.Start, a.Finish, d.Code, a.Id, a.Email_priv, d.SimultaneAfspraken, a.Subject, a.Location, a.Body, a.LastChange, a.Notification, a.OutlookStatus\nfrom appointments a\ninner join\n(select Start, Finish, Code, count(Code) as SimultaneAfspraken\nfrom appointments\ngroup by Start, Finish, Code\nhaving count(Code) > 1) as d \non a.Start = d.Start\nand a.Code = d.Code\nand a.Finish = d.Finish\norder by d.Start, d.Code, d.Finish\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-21T00:06:54+0200",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "pieChart",
+              "height": 628.75,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "Start0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Finish1",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Code2",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Id3",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Email_priv4",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "NumEvents5",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Subject6",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Location7",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Body8",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "LastChange9",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Notification10",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "OutlookStatus11",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1,
+                      "paginationPageSize": 250
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Start": "string",
+                      "Finish": "string",
+                      "Code": "string",
+                      "Id": "string",
+                      "Email_priv": "string",
+                      "SimultaneAfspraken": "string",
+                      "Subject": "string",
+                      "Location": "string",
+                      "Body": "string",
+                      "LastChange": "string",
+                      "Notification": "string",
+                      "OutlookStatus": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": true,
+                    "showAggregationFooter": true
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default",
+                  "stacked": true
+                },
+                "stackedAreaChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default",
+                  "style": "stack"
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "pieChart": {}
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "Email_priv",
+                  "index": 4,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "Start",
+                  "index": 0,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "Finish",
+                  "index": 1,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "SimultaneAfspraken",
+                  "index": 5,
+                  "aggr": "max"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "Start\tFinish\tCode\tId\tEmail_priv\tSimultaneAfspraken\tSubject\tLocation\tBody\tLastChange\tNotification\tOutlookStatus\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103038\t1643367\tj.tenkleij@amadeuslyceum.nl\t5\t# wa - jsi,ojkl - 1 leerling\t13r\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103038\t1643361\tj.tenkleij@amadeuslyceum.nl\t5\t# netl - jsi,ojkl - 2 leerlingen\t13s\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103038\t1643366\tj.tenkleij@amadeuslyceum.nl\t5\t# bec - jsi,ojkl - 1 leerling\t13r\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103038\t1643362\tj.tenkleij@amadeuslyceum.nl\t5\t# kumu - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103038\t1643356\tj.tenkleij@amadeuslyceum.nl\t5\t# wb - jsi,ojkl - 1 leerling\t13r\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643363\tj.tenkleij@amadeuslyceum.nl\t7\t# gs - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643359\tj.tenkleij@amadeuslyceum.nl\t7\t# wa - jsi,ojkl - 8 leerlingen\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643357\tj.tenkleij@amadeuslyceum.nl\t7\t# wb - jsi,ojkl - 2 leerlingen\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643368\tj.tenkleij@amadeuslyceum.nl\t7\t# bec - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643371\tj.tenkleij@amadeuslyceum.nl\t7\t# bi - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643365\tj.tenkleij@amadeuslyceum.nl\t7\t# bi - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103038\t1643369\tj.tenkleij@amadeuslyceum.nl\t7\t# bec - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103525\t1643366\tj.sinnige@amadeuslyceum.nl\t5\t# bec - jsi,ojkl - 1 leerling\t13r\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103525\t1643356\tj.sinnige@amadeuslyceum.nl\t5\t# wb - jsi,ojkl - 1 leerling\t13r\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103525\t1643362\tj.sinnige@amadeuslyceum.nl\t5\t# kumu - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103525\t1643361\tj.sinnige@amadeuslyceum.nl\t5\t# netl - jsi,ojkl - 2 leerlingen\t13s\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 09:55:00.0\t103525\t1643367\tj.sinnige@amadeuslyceum.nl\t5\t# wa - jsi,ojkl - 1 leerling\t13r\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643357\tj.sinnige@amadeuslyceum.nl\t7\t# wb - jsi,ojkl - 2 leerlingen\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643365\tj.sinnige@amadeuslyceum.nl\t7\t# bi - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643363\tj.sinnige@amadeuslyceum.nl\t7\t# gs - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643369\tj.sinnige@amadeuslyceum.nl\t7\t# bec - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643371\tj.sinnige@amadeuslyceum.nl\t7\t# bi - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643359\tj.sinnige@amadeuslyceum.nl\t7\t# wa - jsi,ojkl - 8 leerlingen\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 08:25:00.0\t2021-05-20 10:10:00.0\t103525\t1643368\tj.sinnige@amadeuslyceum.nl\t7\t# bec - jsi,ojkl - 1 leerling\t13l\tnull\t2021-05-11 15:15:47.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:00:00.0\t103141\t1643437\ta.degroot@amadeuslyceum.nl\t2\t# dr - agr,oeve - 2 leerlingen\t13r\tnull\t2021-05-11 15:15:50.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:00:00.0\t103141\t1643443\ta.degroot@amadeuslyceum.nl\t2\t# wb - agr,oeve - 1 leerling\t13r\tnull\t2021-05-11 15:15:50.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103141\t1643420\ta.degroot@amadeuslyceum.nl\t4\t# wi - agr,oeve - 5 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103141\t1643428\ta.degroot@amadeuslyceum.nl\t4\t# wa - agr,oeve - 2 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103141\t1643431\ta.degroot@amadeuslyceum.nl\t4\t# netl - agr,oeve - 3 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103141\t1643423\ta.degroot@amadeuslyceum.nl\t4\t# wb - agr,oeve - 3 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:00:00.0\t103650\t1643443\teva.verweij@amadeuslyceum.nl\t2\t# wb - agr,oeve - 1 leerling\t13r\tnull\t2021-05-11 15:15:50.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:00:00.0\t103650\t1643437\teva.verweij@amadeuslyceum.nl\t2\t# dr - agr,oeve - 2 leerlingen\t13r\tnull\t2021-05-11 15:15:50.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103650\t1643428\teva.verweij@amadeuslyceum.nl\t4\t# wa - agr,oeve - 2 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103650\t1643431\teva.verweij@amadeuslyceum.nl\t4\t# netl - agr,oeve - 3 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103650\t1643420\teva.verweij@amadeuslyceum.nl\t4\t# wi - agr,oeve - 5 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 10:30:00.0\t2021-05-20 12:15:00.0\t103650\t1643423\teva.verweij@amadeuslyceum.nl\t4\t# wb - agr,oeve - 3 leerlingen\t13l\tnull\t2021-05-11 15:15:49.0\tnull\tBusy\n2021-05-20 13:00:00.0\t2021-05-20 14:00:00.0\t103333\t1643446\ts.rademaker@amadeuslyceum.nl\t2\t# na - sra,otli\t12l\tnull\t2021-05-20 09:00:15.0\tnull\tBusy\n2021-05-20 13:00:00.0\t2021-05-20 14:00:00.0\t103333\t1643450\ts.rademaker@amadeuslyceum.nl\t2\t# entl - sra,otli\t12l\tnull\t2021-05-20 09:00:15.0\tnull\tBusy\n2021-05-20 13:00:00.0\t2021-05-20 14:00:00.0\t103804\t1643450\tt.lijffijt@amadeuslyceum.nl\t2\t# entl - sra,otli\t12l\tnull\t2021-05-20 09:00:15.0\tnull\tBusy\n2021-05-20 13:00:00.0\t2021-05-20 14:00:00.0\t103804\t1643446\tt.lijffijt@amadeuslyceum.nl\t2\t# na - sra,otli\t12l\tnull\t2021-05-20 09:00:15.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t100504\t1644496\ta.chenani@amadeuslyceum.nl\t3\t# nask1 - otli,oach\t13l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t100504\t1644501\ta.chenani@amadeuslyceum.nl\t3\t# entl - otli,oach\t13l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t100504\t1644499\ta.chenani@amadeuslyceum.nl\t3\t# na - otli,oach\t13l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103038\t1644495\tj.tenkleij@amadeuslyceum.nl\t3\t# nask1 - ojkl\tsb1\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103038\t1644507\tj.tenkleij@amadeuslyceum.nl\t3\t# entl - ojkl\tsb1\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103038\t1644498\tj.tenkleij@amadeuslyceum.nl\t3\t# na - ojkl\tsb1\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103550\t1644500\tn.langenberg@amadeuslyceum.nl\t3\t# entl - tve,onln\t12l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103550\t1644497\tn.langenberg@amadeuslyceum.nl\t3\t# na - tve,onln\t12l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103550\t1644494\tn.langenberg@amadeuslyceum.nl\t3\t# nask1 - tve,onln\t12l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103773\t1644500\tt.verkaaik@amadeuslyceum.nl\t3\t# entl - tve,onln\t12l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103773\t1644497\tt.verkaaik@amadeuslyceum.nl\t3\t# na - tve,onln\t12l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103773\t1644494\tt.verkaaik@amadeuslyceum.nl\t3\t# nask1 - tve,onln\t12l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103804\t1644499\tt.lijffijt@amadeuslyceum.nl\t3\t# na - otli,oach\t13l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103804\t1644496\tt.lijffijt@amadeuslyceum.nl\t3\t# nask1 - otli,oach\t13l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-20 14:00:00.0\t2021-05-20 15:00:00.0\t103804\t1644501\tt.lijffijt@amadeuslyceum.nl\t3\t# entl - otli,oach\t13l\tnull\t2021-05-12 17:31:53.0\tnull\tBusy\n2021-05-21 08:30:00.0\t2021-05-21 09:50:00.0\t100504\t1646888\ta.chenani@amadeuslyceum.nl\t2\t# dutl - oach\t12l\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 08:30:00.0\t2021-05-21 09:50:00.0\t100504\t1643998\ta.chenani@amadeuslyceum.nl\t2\t# maw - oach\t12l\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 08:30:00.0\t2021-05-21 09:50:00.0\t103550\t1644027\tn.langenberg@amadeuslyceum.nl\t2\t# maw - onln\tsb1\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 08:30:00.0\t2021-05-21 09:50:00.0\t103550\t1644007\tn.langenberg@amadeuslyceum.nl\t2\t# dutl - onln\tsb1\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 09:10:00.0\t2021-05-21 09:50:00.0\t103650\t1467387\teva.verweij@amadeuslyceum.nl\t2\t# 2 wt52 - OEVE - v4.wt52\t3s\tnull\t2021-05-12 17:17:16.0\tnull\tBusy\n2021-05-21 09:10:00.0\t2021-05-21 09:50:00.0\t103650\t1466021\teva.verweij@amadeuslyceum.nl\t2\t# 2 wt52 - OEVE - v5.wt52\t3s\tnull\t2021-05-12 17:17:16.0\tnull\tBusy\n2021-05-21 09:50:00.0\t2021-05-21 10:50:00.0\t100504\t1644521\ta.chenani@amadeuslyceum.nl\t2\t# maw - oach\t12l\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 09:50:00.0\t2021-05-21 10:50:00.0\t100504\t1646885\ta.chenani@amadeuslyceum.nl\t2\t# dutl - oach\t12l\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 09:50:00.0\t2021-05-21 10:50:00.0\t103550\t1644029\tn.langenberg@amadeuslyceum.nl\t2\t# dutl - onln\tsb1\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 09:50:00.0\t2021-05-21 10:50:00.0\t103550\t1644026\tn.langenberg@amadeuslyceum.nl\t2\t# maw - onln\tsb1\tnull\t2021-05-20 15:27:43.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t100504\t1644014\ta.chenani@amadeuslyceum.nl\t2\t# ec - oach,eve\t12l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t100504\t1644006\ta.chenani@amadeuslyceum.nl\t2\t# netl - oach,eve\t12l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103066\t1644016\tl.ramdhani@amadeuslyceum.nl\t2\t# ec - lra,sho,cma\tsb1\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103066\t1644010\tl.ramdhani@amadeuslyceum.nl\t2\t# netl - lra,sho,cma\tsb1\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103106\t1644006\te.verweij@amadeuslyceum.nl\t2\t# netl - oach,eve\t12l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103106\t1644014\te.verweij@amadeuslyceum.nl\t2\t# ec - oach,eve\t12l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103466\t1644010\tc.mastenbroek@amadeuslyceum.nl\t2\t# netl - lra,sho,cma\tsb1\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103466\t1644016\tc.mastenbroek@amadeuslyceum.nl\t2\t# ec - lra,sho,cma\tsb1\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103534\t1644030\tf.daalmeijer@amadeuslyceum.nl\t2\t# ec - fda,onln\t13l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103534\t1644017\tf.daalmeijer@amadeuslyceum.nl\t2\t# netl - fda,onln\t13l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103550\t1644017\tn.langenberg@amadeuslyceum.nl\t2\t# netl - fda,onln\t13l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103550\t1644030\tn.langenberg@amadeuslyceum.nl\t2\t# ec - fda,onln\t13l\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103768\t1644010\ts.hock@amadeuslyceum.nl\t2\t# netl - lra,sho,cma\tsb1\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 13:00:00.0\t2021-05-21 14:00:00.0\t103768\t1644016\ts.hock@amadeuslyceum.nl\t2\t# ec - lra,sho,cma\tsb1\tnull\t2021-05-19 10:42:45.0\tnull\tBusy\n2021-05-21 14:00:00.0\t2021-05-21 15:00:00.0\t103038\t1644020\tj.tenkleij@amadeuslyceum.nl\t2\t# ec - sho,oeve,ojkl\tsb1\tnull\t2021-05-12 17:31:55.0\tnull\tBusy\n2021-05-21 14:00:00.0\t2021-05-21 15:00:00.0\t103038\t1644011\tj.tenkleij@amadeuslyceum.nl\t2\t# netl - sho,oeve,ojkl\tsb1\tnull\t2021-05-12 17:31:55.0\tnull\tBusy\n2021-05-21 14:00:00.0\t2021-05-21 15:00:00.0\t103650\t1644020\teva.verweij@amadeuslyceum.nl\t2\t# ec - sho,oeve,ojkl\tsb1\tnull\t2021-05-12 17:31:55.0\tnull\tBusy\n2021-05-21 14:00:00.0\t2021-05-21 15:00:00.0\t103650\t1644011\teva.verweij@amadeuslyceum.nl\t2\t# netl - sho,oeve,ojkl\tsb1\tnull\t2021-05-12 17:31:55.0\tnull\tBusy\n2021-05-21 14:00:00.0\t2021-05-21 15:00:00.0\t103768\t1644011\ts.hock@amadeuslyceum.nl\t2\t# netl - sho,oeve,ojkl\tsb1\tnull\t2021-05-12 17:31:55.0\tnull\tBusy\n2021-05-21 14:00:00.0\t2021-05-21 15:00:00.0\t103768\t1644020\ts.hock@amadeuslyceum.nl\t2\t# ec - sho,oeve,ojkl\tsb1\tnull\t2021-05-12 17:31:55.0\tnull\tBusy\n2021-05-25 08:30:00.0\t2021-05-25 09:10:00.0\t102998\t1626308\tj.dejager@amadeuslyceum.nl\t2\t# 1 mentor - jja - v5.mentor4\t5l\tnull\t2021-04-16 03:12:55.0\tnull\tBusy\n2021-05-25 08:30:00.0\t2021-05-25 09:10:00.0\t102998\t1626304\tj.dejager@amadeuslyceum.nl\t2\t# 1 mentor - jja - v4.mentorb\tonline serre\tnull\t2021-04-16 03:12:55.0\tnull\tBusy\n2021-05-25 13:00:00.0\t2021-05-25 14:00:00.0\t103038\t1646679\tj.tenkleij@amadeuslyceum.nl\t2\t# ec - ojkl\tsb1\tnull\t2021-05-19 15:59:14.0\tnull\tBusy\n2021-05-25 13:00:00.0\t2021-05-25 14:00:00.0\t103038\t1646673\tj.tenkleij@amadeuslyceum.nl\t2\t# fatl - ojkl\tsb1\tnull\t2021-05-19 15:59:14.0\tnull\tBusy\n2021-05-25 14:00:00.0\t2021-05-25 15:00:00.0\t103038\t1646681\tj.tenkleij@amadeuslyceum.nl\t2\t# fatl - ojkl\tsb1\tnull\t2021-05-19 15:59:15.0\tnull\tBusy\n2021-05-25 14:00:00.0\t2021-05-25 15:00:00.0\t103038\t1646682\tj.tenkleij@amadeuslyceum.nl\t2\t# ec - ojkl\tsb1\tnull\t2021-05-19 15:59:15.0\tnull\tBusy\n2021-05-26 13:00:00.0\t2021-05-26 14:00:00.0\t100504\t1646715\ta.chenani@amadeuslyceum.nl\t4\t# wa - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 13:00:00.0\t2021-05-26 14:00:00.0\t100504\t1646718\ta.chenani@amadeuslyceum.nl\t4\t# bi - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 13:00:00.0\t2021-05-26 14:00:00.0\t100504\t1646713\ta.chenani@amadeuslyceum.nl\t4\t# wb - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 13:00:00.0\t2021-05-26 14:00:00.0\t100504\t1646717\ta.chenani@amadeuslyceum.nl\t4\t# sk - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t100504\t1646726\ta.chenani@amadeuslyceum.nl\t4\t# wb - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t100504\t1646736\ta.chenani@amadeuslyceum.nl\t4\t# wa - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t100504\t1646730\ta.chenani@amadeuslyceum.nl\t4\t# sk - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t100504\t1646735\ta.chenani@amadeuslyceum.nl\t4\t# bi - oach\t12l\tnull\t2021-05-19 07:51:29.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t101220\t1646732\tn.dekoe@amadeuslyceum.nl\t2\t# bi - orsc,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t101220\t1646729\tn.dekoe@amadeuslyceum.nl\t2\t# sk - orsc,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103141\t1646734\ta.degroot@amadeuslyceum.nl\t2\t# bi - agr,onln\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103141\t1646733\ta.degroot@amadeuslyceum.nl\t2\t# sk - agr,onln\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103550\t1646734\tn.langenberg@amadeuslyceum.nl\t2\t# bi - agr,onln\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103550\t1646733\tn.langenberg@amadeuslyceum.nl\t2\t# sk - agr,onln\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103631\t1646729\tr.schrier@amadeuslyceum.nl\t2\t# sk - orsc,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103631\t1646732\tr.schrier@amadeuslyceum.nl\t2\t# bi - orsc,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103804\t1646729\tt.lijffijt@amadeuslyceum.nl\t2\t# sk - orsc,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 14:00:00.0\t2021-05-26 15:00:00.0\t103804\t1646732\tt.lijffijt@amadeuslyceum.nl\t2\t# bi - orsc,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t100504\t1646745\ta.chenani@amadeuslyceum.nl\t2\t# wa - oach\t12l\tnull\t2021-05-19 07:51:30.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t100504\t1646748\ta.chenani@amadeuslyceum.nl\t2\t# sk - oach\t12l\tnull\t2021-05-19 07:51:30.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t101220\t1646747\tn.dekoe@amadeuslyceum.nl\t3\t# sk - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t101220\t1646743\tn.dekoe@amadeuslyceum.nl\t3\t# wa - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t101220\t1646740\tn.dekoe@amadeuslyceum.nl\t3\t# wb - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t103141\t1646741\ta.degroot@amadeuslyceum.nl\t3\t# wb - rbe,agr\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t103141\t1646744\ta.degroot@amadeuslyceum.nl\t3\t# wa - rbe,agr\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t103141\t1646746\ta.degroot@amadeuslyceum.nl\t3\t# sk - rbe,agr\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t103677\t1646747\tl.suijker@amadeuslyceum.nl\t3\t# sk - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t103677\t1646743\tl.suijker@amadeuslyceum.nl\t3\t# wa - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t103677\t1646740\tl.suijker@amadeuslyceum.nl\t3\t# wb - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t103804\t1646740\tt.lijffijt@amadeuslyceum.nl\t3\t# wb - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t103804\t1646747\tt.lijffijt@amadeuslyceum.nl\t3\t# sk - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 16:30:00.0\t103804\t1646743\tt.lijffijt@amadeuslyceum.nl\t3\t# wa - olsu,nko,otli\tsb1\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t103810\t1646744\tr.berkhout@amadeuslyceum.nl\t3\t# wa - rbe,agr\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t103810\t1646741\tr.berkhout@amadeuslyceum.nl\t3\t# wb - rbe,agr\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-26 15:00:00.0\t2021-05-26 17:00:00.0\t103810\t1646746\tr.berkhout@amadeuslyceum.nl\t3\t# sk - rbe,agr\t13l\tnull\t2021-05-19 15:59:21.0\tnull\tBusy\n2021-05-27 08:30:00.0\t2021-05-27 09:50:00.0\t100504\t1646757\ta.chenani@amadeuslyceum.nl\t2\t# dutl - oach\t12l\tnull\t2021-05-19 07:51:30.0\tnull\tBusy\n2021-05-27 08:30:00.0\t2021-05-27 09:50:00.0\t100504\t1646755\ta.chenani@amadeuslyceum.nl\t2\t# mu - oach\t12l\tnull\t2021-05-19 07:51:30.0\tnull\tBusy\n2021-05-27 09:50:00.0\t2021-05-27 10:50:00.0\t100504\t1646762\ta.chenani@amadeuslyceum.nl\t2\t# mu - oach\t12l\tnull\t2021-05-19 07:51:30.0\tnull\tBusy\n2021-05-27 09:50:00.0\t2021-05-27 10:50:00.0\t100504\t1646761\ta.chenani@amadeuslyceum.nl\t2\t# dutl - oach\t12l\tnull\t2021-05-19 07:51:30.0\tnull\tBusy\n2021-05-27 13:00:00.0\t2021-05-27 14:00:00.0\t103550\t1646777\tn.langenberg@amadeuslyceum.nl\t2\t# bi - onln\t12l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 13:00:00.0\t2021-05-27 14:00:00.0\t103550\t1646773\tn.langenberg@amadeuslyceum.nl\t2\t# en - onln\t12l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 13:00:00.0\t2021-05-27 14:00:00.0\t103804\t1646776\tt.lijffijt@amadeuslyceum.nl\t2\t# bi - otli\t13l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 13:00:00.0\t2021-05-27 14:00:00.0\t103804\t1646772\tt.lijffijt@amadeuslyceum.nl\t2\t# en - otli\t13l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 14:00:00.0\t2021-05-27 15:00:00.0\t103550\t1646788\tn.langenberg@amadeuslyceum.nl\t2\t# bi - onln\t12l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 14:00:00.0\t2021-05-27 15:00:00.0\t103550\t1646785\tn.langenberg@amadeuslyceum.nl\t2\t# en - onln\t12l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 14:00:00.0\t2021-05-27 15:00:00.0\t103804\t1646784\tt.lijffijt@amadeuslyceum.nl\t2\t# en - otli\t13l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-27 14:00:00.0\t2021-05-27 15:00:00.0\t103804\t1646787\tt.lijffijt@amadeuslyceum.nl\t2\t# bi - otli\t13l\tnull\t2021-05-19 07:51:31.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103066\t1646823\tl.ramdhani@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103066\t1646940\tl.ramdhani@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103066\t1646831\tl.ramdhani@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103106\t1646822\te.verweij@amadeuslyceum.nl\t3\t# ec - eve\t13l\tnull\t2021-05-19 07:51:32.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103106\t1646819\te.verweij@amadeuslyceum.nl\t3\t# te,ha - eve\t13l\tnull\t2021-05-19 07:51:32.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103106\t1646818\te.verweij@amadeuslyceum.nl\t3\t# na - eve\t13l\tnull\t2021-05-19 07:51:32.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103464\t1646823\th.bouwhuis@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103464\t1646831\th.bouwhuis@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103464\t1646940\th.bouwhuis@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103550\t1646825\tn.langenberg@amadeuslyceum.nl\t2\t# na - onln\t12l\tnull\t2021-05-19 07:51:32.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103550\t1646821\tn.langenberg@amadeuslyceum.nl\t2\t# ec - onln\t12l\tnull\t2021-05-19 07:51:32.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103650\t1646831\teva.verweij@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103650\t1646823\teva.verweij@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103650\t1646940\teva.verweij@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103778\t1646823\ta.dechene@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103778\t1646940\ta.dechene@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 13:00:00.0\t2021-05-28 14:00:00.0\t103778\t1646831\ta.dechene@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103038\t1646830\tj.tenkleij@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103038\t1646836\tj.tenkleij@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103038\t1646942\tj.tenkleij@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103524\t1646834\tr.platje@amadeuslyceum.nl\t2\t# ec - rpl\t13l\tnull\t2021-05-19 07:51:33.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103524\t1646832\tr.platje@amadeuslyceum.nl\t2\t# te,ha - rpl\t13l\tnull\t2021-05-19 07:51:33.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103531\t1646836\tv.vanderveer@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103531\t1646942\tv.vanderveer@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103531\t1646830\tv.vanderveer@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103650\t1646942\teva.verweij@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103650\t1646836\teva.verweij@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103650\t1646830\teva.verweij@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103700\t1646830\tt.wiersma@amadeuslyceum.nl\t3\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103700\t1646836\tt.wiersma@amadeuslyceum.nl\t3\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 14:00:00.0\t2021-05-28 15:00:00.0\t103700\t1646942\tt.wiersma@amadeuslyceum.nl\t3\t# te,ha - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103038\t1646841\tj.tenkleij@amadeuslyceum.nl\t2\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103038\t1646849\tj.tenkleij@amadeuslyceum.nl\t2\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 17:00:00.0\t103524\t1646846\tr.platje@amadeuslyceum.nl\t2\t# ec - rpl\t13l\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 17:00:00.0\t103524\t1646842\tr.platje@amadeuslyceum.nl\t2\t# na - rpl\t13l\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103527\t1646849\te.krasenberg@amadeuslyceum.nl\t2\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103527\t1646841\te.krasenberg@amadeuslyceum.nl\t2\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103531\t1646841\tv.vanderveer@amadeuslyceum.nl\t2\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103531\t1646849\tv.vanderveer@amadeuslyceum.nl\t2\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103700\t1646841\tt.wiersma@amadeuslyceum.nl\t2\t# na - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 16:30:00.0\t103700\t1646849\tt.wiersma@amadeuslyceum.nl\t2\t# ec - 4 docenten\tsb1\tnull\t2021-05-19 15:59:22.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 17:00:00.0\t103703\t1646840\ts.slootweg@amadeuslyceum.nl\t2\t# na - ossl\t12l\tnull\t2021-05-19 07:51:33.0\tnull\tBusy\n2021-05-28 15:00:00.0\t2021-05-28 17:00:00.0\t103703\t1646845\ts.slootweg@amadeuslyceum.nl\t2\t# ec - ossl\t12l\tnull\t2021-05-19 07:51:33.0\tnull\tBusy\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://192.168.178.96:4040/jobs/job?id=354",
+              "$$hashKey": "object:177585"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621522676498_1073584892",
+      "id": "paragraph_1621522676498_1073584892",
+      "dateCreated": "2021-05-20T16:57:56+0200",
+      "dateStarted": "2021-05-21T00:06:54+0200",
+      "dateFinished": "2021-05-21T00:06:55+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164124"
+    },
+    {
+      "text": "%md\n## Volgens onze analyse wel!",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-20T17:34:06+0200",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>Volgens onze analyse wel!</h2>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621524827197_1536832200",
+      "id": "paragraph_1621524827197_1536832200",
+      "dateCreated": "2021-05-20T17:33:47+0200",
+      "dateStarted": "2021-05-20T17:34:06+0200",
+      "dateFinished": "2021-05-20T17:34:06+0200",
+      "status": "FINISHED",
+      "$$hashKey": "object:164125"
+    }
+  ],
+  "name": "Speyk DIS",
+  "id": "2G6QWCVDA",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/Speyk DIS"
+}
