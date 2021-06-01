@@ -7,8 +7,15 @@
                     <organizer>
                         <emailAddress>
                             <address>
-                                <!-- controle op lege @ -> group -->
-                                <xsl:value-of select="concat(substring-before(Email_priv, '@'), '@speykintegrations.onmicrosoft.com')"/>
+                                <xsl:choose>
+                                    <xsl:when test="contains(Email_priv, '@')">
+                                        <xsl:value-of
+                                                select="concat(substring-before(Email_priv, '@'), '@speykintegrations.onmicrosoft.com')"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="Email_priv"/>
+                                    </xsl:otherwise>
+                                </xsl:choose>
                             </address>
                         </emailAddress>
                     </organizer>
