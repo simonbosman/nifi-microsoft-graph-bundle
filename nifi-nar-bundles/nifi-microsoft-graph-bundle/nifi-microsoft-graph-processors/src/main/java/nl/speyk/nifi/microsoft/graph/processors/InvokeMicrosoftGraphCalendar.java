@@ -25,17 +25,22 @@ import com.microsoft.graph.content.BatchRequestContent;
 import com.microsoft.graph.content.BatchResponseContent;
 import com.microsoft.graph.content.BatchResponseStep;
 import com.microsoft.graph.core.ClientException;
-import com.microsoft.graph.http.GraphErrorResponse;
 import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.http.HttpMethod;
 import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.Event;
 import com.microsoft.graph.requests.EventCollectionPage;
+import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.commons.io.IOUtils;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.distributed.cache.client.Deserializer;
+import org.apache.nifi.distributed.cache.client.DistributedMapCacheClient;
+import org.apache.nifi.distributed.cache.client.Serializer;
+import org.apache.nifi.distributed.cache.client.exception.DeserializationException;
+import org.apache.nifi.distributed.cache.client.exception.SerializationException;
 import org.apache.nifi.expression.ExpressionLanguageScope;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.annotation.behavior.ReadsAttributes;
@@ -54,15 +59,14 @@ import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.util.StandardValidators;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
@@ -77,6 +81,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     public final static String GRAPH_METHOD_POST = "POST";
     public final static String GRAPH_METHOD_PATCH = "PATCH";
     public final static String GRAPH_METHOD_DELETE = "DELETE";
+
+    //For how many full working weeks we will synchronize
+    //the appointments in advance
+    public final static int GRAPH_WEEKS_IN_ADVANCE = 3;
 
     // Microsoft allows max 4 concurent tasks on a mailbox
     public final static int GRAPH_MAILBOX_CONCURRENCY_LIMIT = 4;
@@ -94,9 +102,17 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     public final static PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor.Builder()
             .name("mg-cs-auth-controller-id")
             .displayName("Graph Controller Service")
-            .description("Graph Controller Service")
+            .description("Graph Controller Service used for creating a connection to the Graph")
             .required(true)
             .identifiesControllerService(MicrosoftGraphCredentialService.class)
+            .build();
+
+    public final static PropertyDescriptor GRAPH_DISTRIBUTED_MAPCACHE = new PropertyDescriptor.Builder()
+            .name("mg-cs-mapcache-id")
+            .displayName("Distributed mapcache client")
+            .description("Distributed mapcache client used for detecting changes")
+            .required(true)
+            .identifiesControllerService(DistributedMapCacheClient.class)
             .build();
 
     public static final PropertyDescriptor GRAPH_PROP_METHOD = new PropertyDescriptor.Builder()
@@ -144,6 +160,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
+    private final Serializer<String> keySerializer = new StringSerializer();
+    private final Deserializer<String> KeyDeserializer = new StringDeserializer();
+    private final Serializer<byte[]> valueSerializer = new CacheValueSerializer();
+    private final Deserializer<byte[]> valueDeserializer = new CacheValueDeserializer();
 
     private void routeToFaillure(FlowFile requestFlowFile, final ComponentLog logger,
                                  final ProcessSession session, final ProcessContext context, final Exception e) {
@@ -162,22 +182,188 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     private List<Event> getGraphEvents(String userId) {
+        //Get all events for the next tree full working weeks
+        final LocalDate dateEnd = LocalDate.now();
+        final LocalDate dateStartInitial = LocalDate.now().plusWeeks(GRAPH_WEEKS_IN_ADVANCE);
+        final LocalDate dateStart = dateStartInitial.plusDays(7 - dateStartInitial.getDayOfWeek().getValue());
 
-        final EventCollectionPage eventCollectionPage = msGraphClientAtomicRef.get()
+        EventCollectionPage eventCollectionPage = msGraphClientAtomicRef.get()
                 .users(userId)
                 .events()
                 .buildRequest()
-                .select("transactionId, subject, Body, start, end, location, showAs")
-                .filter("start/dateTime ge '2017-07-01T08:00'")
+                .select("id, transactionId, subject, Body, start, end, location, showAs")
+                .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd.toString(), dateStart.toString()))
                 .get();
-        final List<Event> events = eventCollectionPage.getCurrentPage();
+
+        //Loop trrough available pages and fill list of events
+        List<Event> events = new LinkedList<>();
+        while (eventCollectionPage != null) {
+            events.addAll(eventCollectionPage.getCurrentPage());
+            final EventCollectionRequestBuilder nextPage = eventCollectionPage.getNextPage();
+            if (nextPage == null) {
+                break;
+            } else {
+                eventCollectionPage = nextPage.buildRequest().get();
+            }
+        }
         return events;
+    }
+
+    //Get the difference of the given lists of events.
+    private List<Event> eventsDiff(List<Event> eventsSource, List<Event> eventsGraph) {
+        Set<String> setSource = new HashSet<>();
+        for (Event evt : eventsSource) {
+            setSource.add(evt.transactionId);
+        }
+
+        Set<String> setGraph = new HashSet<>();
+        for (Event evt : eventsGraph) {
+            setGraph.add(evt.transactionId);
+        }
+
+        Set<String> difference = new HashSet<>(setSource);
+        difference.removeAll(setGraph);
+
+        List<Event> diffEvents = eventsSource.stream().filter(event -> difference.contains(event.transactionId)).collect(Collectors.toList());
+        return diffEvents;
+    }
+
+    //Patch events for user if event has changed
+    private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache)
+            throws IOException, NoSuchAlgorithmException {
+        for (Event evt : eventsSource) {
+            StringBuilder sb = new StringBuilder();
+            if (evt.start != null) {
+                sb.append(evt.start.dateTime);
+            }
+            if (evt.end != null) {
+                sb.append(evt.end.dateTime);
+            }
+            sb.append(evt.subject);
+            if (evt.body != null) {
+                sb.append(evt.body.content);
+            }
+            if (evt.location != null) {
+                sb.append(evt.location.displayName);
+            }
+            sb.append(evt.showAs);
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashedEvt = digest.digest(
+                    sb.toString().getBytes(StandardCharsets.UTF_8));
+
+            byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
+
+            if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
+                try {
+                    final Event eventToPatch = eventsGraph.stream().filter((event) -> event.transactionId.equals(evt.transactionId)).findAny().get();
+                    msGraphClientAtomicRef.get()
+                            .users(userId)
+                            .events(eventToPatch.id)
+                            .buildRequest()
+                            .patch(evt);
+                } catch (NoSuchElementException e) {
+                    getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
+                }
+            }
+        }
+    }
+
+    //Put a hash of the events in a distributed mapcache so we can detect changes
+    private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException {
+        for (Event evt : events) {
+            StringBuilder sb = new StringBuilder();
+            if (evt.start != null) {
+                sb.append(evt.start.dateTime);
+            }
+            if (evt.end != null) {
+                sb.append(evt.end.dateTime);
+            }
+            sb.append(evt.subject);
+            if (evt.body != null) {
+                sb.append(evt.body.content);
+            }
+            if (evt.location != null) {
+                sb.append(evt.location.displayName);
+            }
+            sb.append(evt.showAs);
+
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashedEvt = digest.digest(
+                    sb.toString().getBytes(StandardCharsets.UTF_8));
+
+            cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
+        }
+        Set<String> keys = cache.keySet(KeyDeserializer);
+    }
+
+    private void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, final FlowFile requestFlowFile) throws ClientException {
+        // Attributes for success and retry flow files
+        final Map<String, String> attributes = new Hashtable<>();
+        attributes.put("Content-Type", "application/json; charset=utf-8");
+        attributes.put("mime.type", "application/json");
+
+        // error codes for retry
+        final int[] errorCodes = {GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE, GRAPH_HTTP_GATEWAY_TIMEOUT};
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        // Partition the list in sublists of 4 each
+        for (List<Event> eventList : Lists.partition(events, GRAPH_MAILBOX_CONCURRENCY_LIMIT)) {
+            // JSON batch request
+            // @see <a href>"https://docs.microsoft.com/en-us/graph/json-batching"</a>
+            final Map<String, Event> idEvent = new Hashtable<>();
+            final BatchRequestContent batchRequestContent = new BatchRequestContent();
+
+            // Four requests per batch
+            for (Event event : eventList) {
+                idEvent.put(batchRequestContent.addBatchRequestStep(msGraphClientAtomicRef.get()
+                        .users(userId)
+                        .events()
+                        .buildRequest(), HttpMethod.POST, event), event);
+            }
+
+            final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get()
+                    .batch()
+                    .buildRequest()
+                    .post(batchRequestContent);
+
+            // Route responses
+            for (BatchResponseStep batchResponseStep : batchResponseContent.responses) {
+                if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
+                    //If event is created, put the response in the succes flow file
+                    FlowFile succesFlowFile = session.create();
+                    succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
+                    session.write(succesFlowFile, out -> IOUtils.write(gson.toJson(batchResponseStep.body), out, StandardCharsets.UTF_8));
+                    session.transfer(succesFlowFile, REL_SUCCESS);
+                } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
+                    //In case of the following error codes (429, 503, 504)
+                    //put the event from the hashtable in a flow file and route to retry
+                    final Event[] evtRetry = {idEvent.get(batchResponseStep.id)};
+                    String json = gson.toJson(evtRetry, Event[].class);
+
+                    FlowFile retryFLowFile = session.create();
+                    retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
+
+                    //Use the RetryFLow processor for setting the max retries
+                    final String attrNumRetries = requestFlowFile.getAttribute("flowfile.retries");
+                    final String numRetries = (attrNumRetries != null) ? attrNumRetries : "1";
+
+                    retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", numRetries);
+
+                    session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+                    session.transfer(retryFLowFile, REL_RETRY);
+                } else {
+                    //This will throw a GraphServiceException or return Event
+                    batchResponseStep.getDeserializedBody(Event.class);
+                }
+            }
+        }
     }
 
     @Override
     protected void init(final ProcessorInitializationContext context) {
         this.relationships = Set.of(REL_SUCCESS, REL_RETRY, REL_FAILURE, REL_ORIGINAL);
-        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_PROP_METHOD, GRAPH_USER_ID);
+        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_PROP_METHOD, GRAPH_USER_ID);
     }
 
     @Override
@@ -192,11 +378,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     @OnScheduled
     public void onScheduled(final ProcessContext context) {
-
         if (msGraphClientAtomicRef.get() != null) {
             return;
         }
-
         // Get the controllerservice responsible for an authenticated GraphClient
         // We will reuse the build GraphClient, hence we put it in a an atomic reference
         MicrosoftGraphCredentialService microsoftGraphCredentialService = context.getProperty(GRAPH_CONTROLLER_ID)
@@ -206,7 +390,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     @Override
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
-
         FlowFile requestFlowFile = session.get();
         if (requestFlowFile == null) {
             return;
@@ -222,6 +405,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             session.transfer(requestFlowFile, REL_FAILURE);
             return;
         }
+
+        // the cache client used to interact with the distributed cache
+        final DistributedMapCacheClient cache = context.getProperty(GRAPH_DISTRIBUTED_MAPCACHE).asControllerService(DistributedMapCacheClient.class);
 
         try {
             /**
@@ -248,72 +434,27 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 logger.error("Not valid JSON or empty.");
                 events = new Event[]{};
             }
+
             final List<Event> eventsSource = Arrays.asList(events);
-            //final List<Event> eventsGraph = getGraphEvents(userId);
+            final List<Event> eventsGraph = getGraphEvents(userId);
 
-            // Attributes for success and retry flow files
-            final Map<String, String> attributes = new Hashtable<>();
-            attributes.put("Content-Type", "application/json; charset=utf-8");
-            attributes.put("mime.type", "application/json");
+            //Are there any events that have changed?
+            //If so patch them in the graph
+            patchGraphEvents(userId, eventsSource, eventsGraph, cache);
 
-            // error codes for retry
-            final int[] errorCodes = {GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE, GRAPH_HTTP_GATEWAY_TIMEOUT};
+            //Only synchronize events that are not already in the graph
+            final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
-            // Partition the list in sublists of 4 each
-            for (List<Event> eventList : Lists.partition(Arrays.asList(events), GRAPH_MAILBOX_CONCURRENCY_LIMIT)) {
-                // JSON batch request
-                // @see <a href>"https://docs.microsoft.com/en-us/graph/json-batching"</a>
-                final Map<String, Event> idEvent = new Hashtable<>();
-                final BatchRequestContent batchRequestContent = new BatchRequestContent();
+            //Put the events in batches in the Microsoft Graph
+            putBatchGraphEvents(context, session, eventsToGraph, userId, requestFlowFile);
 
-                // Four requests per batch
-                for (Event event : eventList) {
-                    idEvent.put(batchRequestContent.addBatchRequestStep(msGraphClientAtomicRef.get()
-                            .users(userId)
-                            .events()
-                            .buildRequest(), HttpMethod.POST, event), event);
-                }
+            //Put the events in a mapcache
+            putEventsMapCache(eventsToGraph, cache);
 
-                final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get()
-                        .batch()
-                        .buildRequest()
-                        .post(batchRequestContent);
-
-                // Route responses
-                for (BatchResponseStep batchResponseStep : batchResponseContent.responses) {
-                    if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
-                        //If event is created, put the response in the succes flow file
-                        FlowFile succesFlowFile = session.create();
-                        succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
-                        session.write(succesFlowFile, out -> IOUtils.write(gson.toJson(batchResponseStep.body), out, StandardCharsets.UTF_8));
-                        session.transfer(succesFlowFile, REL_SUCCESS);
-                    } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
-                        //In case of the following error codes (429, 503, 503)
-                        //put the event from the hashtable in a flow file and route to retry
-                        final Event[] evtRetry = {idEvent.get(batchResponseStep.id)};
-                        String json = gson.toJson(evtRetry, Event[].class);
-
-                        FlowFile retryFLowFile = session.create();
-                        retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
-
-                        //Use the RetryFLow processor for setting the max retries
-                        final String attrNumRetries = requestFlowFile.getAttribute("flowfile.retries");
-                        final String numRetries = (attrNumRetries != null) ? attrNumRetries : "1";
-
-                        retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", numRetries);
-
-                        session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-                        session.transfer(retryFLowFile, REL_RETRY);
-                    } else {
-                        //This will throw a GraphServiceException or just return null
-                        batchResponseStep.getDeserializedBody(GraphErrorResponse.class);
-                    }
-                }
-            }
             // The original flowfile hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
-        } catch (GraphServiceException | IOException e) {
+        } catch (GraphServiceException | IOException | NoSuchAlgorithmException e) {
             //Error in performing request to Microsoft Graph
             //We can't recover from this so route to failure handler
             routeToFaillure(requestFlowFile, logger, session, context, e);
@@ -326,6 +467,43 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             // transfer original to retry
             session.transfer(requestFlowFile, REL_RETRY);
             context.yield();
+        }
+    }
+
+    public static class CacheValueSerializer implements Serializer<byte[]> {
+
+        @Override
+        public void serialize(final byte[] bytes, final OutputStream out) throws SerializationException, IOException {
+            out.write(bytes);
+        }
+    }
+
+    public static class CacheValueDeserializer implements Deserializer<byte[]> {
+
+        @Override
+        public byte[] deserialize(final byte[] input) throws DeserializationException, IOException {
+            if (input == null || input.length == 0) {
+                return null;
+            }
+            return input;
+        }
+    }
+
+    public static class StringDeserializer implements Deserializer<String> {
+
+
+        @Override
+        public String deserialize(byte[] input) throws DeserializationException, IOException {
+            return new String(input, StandardCharsets.UTF_8);
+        }
+    }
+
+    //Simple string serializer, used for serializing the cache key
+    public static class StringSerializer implements Serializer<String> {
+
+        @Override
+        public void serialize(final String value, final OutputStream out) throws SerializationException, IOException {
+            out.write(value.getBytes(StandardCharsets.UTF_8));
         }
     }
 }
