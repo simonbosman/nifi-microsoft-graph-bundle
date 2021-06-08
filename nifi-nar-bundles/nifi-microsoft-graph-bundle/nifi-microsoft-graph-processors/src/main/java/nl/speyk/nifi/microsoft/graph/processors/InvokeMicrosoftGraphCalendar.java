@@ -228,73 +228,76 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         return diffEvents;
     }
 
+    private byte[] createHashedEvent(Event evt) throws NoSuchAlgorithmException {
+        StringBuilder sb = new StringBuilder();
+        if (evt.start != null) sb.append(evt.start.dateTime);
+        if (evt.end != null) sb.append(evt.end.dateTime);
+        sb.append(evt.subject);
+        if (evt.body != null) sb.append(evt.body.content);
+        if (evt.location != null) sb.append(evt.location.displayName);
+        sb.append(evt.showAs);
+
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        byte[] hashedEvent = messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
+
+        return hashedEvent;
+    }
+
     //Patch events for user if event has changed
     private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache)
             throws IOException, NoSuchAlgorithmException {
+        //Are there any chages in the source event?
+        //Patch the graph with the changed event
+        //Update the cache with the changed event
         for (Event evt : eventsSource) {
-            StringBuilder sb = new StringBuilder();
-            if (evt.start != null) {
-                sb.append(evt.start.dateTime);
-            }
-            if (evt.end != null) {
-                sb.append(evt.end.dateTime);
-            }
-            sb.append(evt.subject);
-            if (evt.body != null) {
-                sb.append(evt.body.content);
-            }
-            if (evt.location != null) {
-                sb.append(evt.location.displayName);
-            }
-            sb.append(evt.showAs);
-
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashedEvt = digest.digest(
-                    sb.toString().getBytes(StandardCharsets.UTF_8));
-
+            byte[] hashedEvt = createHashedEvent(evt);
             byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
             if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
                 try {
-                    final Event eventToPatch = eventsGraph.stream().filter((event) -> event.transactionId.equals(evt.transactionId)).findAny().get();
+                    final Event eventToPatch = eventsGraph.stream().filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
                     msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(eventToPatch.id)
                             .buildRequest()
                             .patch(evt);
+                    cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
                 } catch (NoSuchElementException e) {
                     getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
                 }
             }
         }
+        //Are there any changes in the graph event?
+        //Patch the graph event with the original event
+        //from the list of source events
+        //Effectually restoring manual chages to the graph
+        for (Event evt : eventsGraph) {
+            byte[] hashedEvt = createHashedEvent(evt);
+            byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
+
+            if (hashedCashedEvt != null & !Arrays.equals(hashedEvt, hashedCashedEvt)) {
+                try {
+                    final Event eventPatchVal = eventsSource.stream().filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
+                    msGraphClientAtomicRef.get()
+                            .users(userId)
+                            .events(evt.id)
+                            .buildRequest()
+                            .patch(eventPatchVal);
+                } catch (NoSuchElementException e) {
+                    getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
+                }
+            }
+        }
+
+
     }
 
     //Put a hash of the events in a distributed mapcache so we can detect changes
     private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException {
         for (Event evt : events) {
-            StringBuilder sb = new StringBuilder();
-            if (evt.start != null) {
-                sb.append(evt.start.dateTime);
-            }
-            if (evt.end != null) {
-                sb.append(evt.end.dateTime);
-            }
-            sb.append(evt.subject);
-            if (evt.body != null) {
-                sb.append(evt.body.content);
-            }
-            if (evt.location != null) {
-                sb.append(evt.location.displayName);
-            }
-            sb.append(evt.showAs);
-
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashedEvt = digest.digest(
-                    sb.toString().getBytes(StandardCharsets.UTF_8));
-
+            byte[] hashedEvt = createHashedEvent(evt);
             cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
         }
-        Set<String> keys = cache.keySet(KeyDeserializer);
     }
 
     private void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, final FlowFile requestFlowFile) throws ClientException {
@@ -490,7 +493,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     public static class StringDeserializer implements Deserializer<String> {
-
 
         @Override
         public String deserialize(byte[] input) throws DeserializationException, IOException {
