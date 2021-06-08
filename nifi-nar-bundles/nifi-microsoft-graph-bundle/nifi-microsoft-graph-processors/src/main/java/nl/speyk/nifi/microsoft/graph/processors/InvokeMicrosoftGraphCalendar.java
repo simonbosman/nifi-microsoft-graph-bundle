@@ -246,7 +246,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     //Patch events for user if event has changed
     private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache)
             throws IOException, NoSuchAlgorithmException {
-        //Are there any chages in the source event?
+        //Are there any changes in the source event?
         //Patch the graph with the changed event
         //Update the cache with the changed event
         for (Event evt : eventsSource) {
@@ -278,6 +278,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             if (hashedCashedEvt != null & !Arrays.equals(hashedEvt, hashedCashedEvt)) {
                 try {
                     final Event eventPatchVal = eventsSource.stream().filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
+                    eventPatchVal.showAs = FreeBusyStatus.BUSY;
                     msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(evt.id)
