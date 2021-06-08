@@ -29,6 +29,7 @@ import com.microsoft.graph.http.GraphServiceException;
 import com.microsoft.graph.http.HttpMethod;
 import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.Event;
+import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
@@ -161,7 +162,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private Set<Relationship> relationships;
     private final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
     private final Serializer<String> keySerializer = new StringSerializer();
-    private final Deserializer<String> KeyDeserializer = new StringDeserializer();
     private final Serializer<byte[]> valueSerializer = new CacheValueSerializer();
     private final Deserializer<byte[]> valueDeserializer = new CacheValueDeserializer();
 
@@ -210,14 +210,14 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     //Get the difference of the given lists of events.
-    private List<Event> eventsDiff(List<Event> eventsSource, List<Event> eventsGraph) {
+    private List<Event> eventsDiff(List<Event> eventsSource, List<Event> eventsDest) {
         Set<String> setSource = new HashSet<>();
         for (Event evt : eventsSource) {
             setSource.add(evt.transactionId);
         }
 
         Set<String> setGraph = new HashSet<>();
-        for (Event evt : eventsGraph) {
+        for (Event evt : eventsDest) {
             setGraph.add(evt.transactionId);
         }
 
@@ -289,7 +289,29 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             }
         }
 
+        //Is the set of events greater in the graph than in source?
+        //Make event in the graph tentative
+        List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
+        for (Event evt : eventsToDelete) {
+            Event eventPatchVal = new Event();
+            eventPatchVal.start = evt.start;
+            eventPatchVal.end = evt.end;
+            eventPatchVal.transactionId = evt.transactionId;
+            eventPatchVal.subject = evt.subject;
+            eventPatchVal.body = evt.body;
+            eventPatchVal.location = evt.location;
+            eventPatchVal.showAs = FreeBusyStatus.TENTATIVE;
 
+            try {
+                msGraphClientAtomicRef.get()
+                        .users(userId)
+                        .events(evt.id)
+                        .buildRequest()
+                        .patch(eventPatchVal);
+            } catch (NoSuchElementException e) {
+                getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
+            }
+        }
     }
 
     //Put a hash of the events in a distributed mapcache so we can detect changes
@@ -489,14 +511,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 return null;
             }
             return input;
-        }
-    }
-
-    public static class StringDeserializer implements Deserializer<String> {
-
-        @Override
-        public String deserialize(byte[] input) throws DeserializationException, IOException {
-            return new String(input, StandardCharsets.UTF_8);
         }
     }
 
