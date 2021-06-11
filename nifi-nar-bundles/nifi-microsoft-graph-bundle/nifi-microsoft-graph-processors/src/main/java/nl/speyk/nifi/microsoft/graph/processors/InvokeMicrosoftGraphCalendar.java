@@ -368,6 +368,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     String json = gson.toJson(evtRetry, Event[].class);
 
                     FlowFile retryFLowFile = session.create();
+                    attributes.put("upn-name", userId);
                     retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
 
                     //Use the RetryFLow processor for setting the max retries
