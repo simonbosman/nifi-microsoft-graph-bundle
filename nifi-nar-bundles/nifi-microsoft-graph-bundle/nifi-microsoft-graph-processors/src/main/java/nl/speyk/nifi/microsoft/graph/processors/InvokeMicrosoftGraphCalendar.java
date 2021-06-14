@@ -270,7 +270,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         //Are there any changes in the graph event?
         //Patch the graph event with the original event
         //from the list of source events
-        //Effectually restoring manual chages to the graph
+        //Effectually restoring manual changes to the graph
         for (Event evt : eventsGraph) {
             byte[] hashedEvt = createHashedEvent(evt);
             byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
@@ -294,6 +294,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         //Make event in the graph tentative
         List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
         for (Event evt : eventsToDelete) {
+            //Is the event managed by DIS? If not skip.
+            if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
+                continue;
             Event eventPatchVal = new Event();
             eventPatchVal.start = evt.start;
             eventPatchVal.end = evt.end;
