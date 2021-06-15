@@ -297,7 +297,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .buildRequest()
                             .patch(eventPatchVal);
                 } catch (NoSuchElementException e) {
-                    getLogger().error(String.format("Graph event with transactionId %s couldn't be patched.", evt.transactionId));
+                    getLogger().info(String.format("Graph event with transactionId %s and subject %s couldn't be patched.", evt.transactionId, evt.subject));
                 }
             }
         }
