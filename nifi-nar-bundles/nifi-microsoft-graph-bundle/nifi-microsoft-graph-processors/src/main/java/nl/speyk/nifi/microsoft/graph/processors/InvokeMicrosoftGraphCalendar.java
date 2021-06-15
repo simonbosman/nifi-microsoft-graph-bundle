@@ -213,11 +213,15 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private List<Event> eventsDiff(List<Event> eventsSource, List<Event> eventsDest) {
         Set<String> setSource = new HashSet<>();
         for (Event evt : eventsSource) {
+            if (evt.transactionId == null)
+                continue;
             setSource.add(evt.transactionId);
         }
 
         Set<String> setGraph = new HashSet<>();
         for (Event evt : eventsDest) {
+            if (evt.transactionId == null)
+                continue;
             setGraph.add(evt.transactionId);
         }
 
@@ -263,7 +267,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .patch(evt);
                     cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
                 } catch (NoSuchElementException e) {
-                    getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
+                    getLogger().error(String.format("Source event with transactionId %s couldn't be patched.", evt.transactionId));
                 }
             }
         }
@@ -272,6 +276,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         //from the list of source events
         //Effectually restoring manual changes to the graph
         for (Event evt : eventsGraph) {
+            //Event not managed by DIS, so continue
+            if (evt.transactionId == null)
+                continue;
+
             byte[] hashedEvt = createHashedEvent(evt);
             byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
@@ -285,7 +293,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .buildRequest()
                             .patch(eventPatchVal);
                 } catch (NoSuchElementException e) {
-                    getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
+                    getLogger().error(String.format("Graph event with transactionId %s couldn't be patched.", evt.transactionId));
                 }
             }
         }
@@ -313,7 +321,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                         .buildRequest()
                         .patch(eventPatchVal);
             } catch (NoSuchElementException e) {
-                getLogger().error(String.format("Event with transactionId %s couldn't be patched.", evt.transactionId));
+                getLogger().error(String.format("Graph event with transactionId %s couldn't be patched to state tentative.", evt.transactionId));
             }
         }
     }
