@@ -259,7 +259,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
             if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
                 try {
-                    final Event eventToPatch = eventsGraph.stream().filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
+                    final Event eventToPatch = eventsGraph.stream()
+                            .filter(event -> event.transactionId != null )
+                            .filter(event -> event.transactionId.equals(evt.transactionId))
+                            .findAny().get();
                     msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(eventToPatch.id)
@@ -285,7 +288,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
             if (hashedCashedEvt != null & !Arrays.equals(hashedEvt, hashedCashedEvt)) {
                 try {
-                    final Event eventPatchVal = eventsSource.stream().filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
+                    final Event eventPatchVal = eventsSource.stream()
+                            .filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
                     eventPatchVal.showAs = FreeBusyStatus.BUSY;
                     msGraphClientAtomicRef.get()
                             .users(userId)
