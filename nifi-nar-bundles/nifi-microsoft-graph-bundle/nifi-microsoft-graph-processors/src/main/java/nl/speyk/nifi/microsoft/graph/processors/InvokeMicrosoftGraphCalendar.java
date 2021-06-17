@@ -30,6 +30,8 @@ import com.microsoft.graph.http.HttpMethod;
 import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.Event;
 import com.microsoft.graph.models.FreeBusyStatus;
+import com.microsoft.graph.options.HeaderOption;
+import com.microsoft.graph.options.Option;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
@@ -64,7 +66,12 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -181,16 +188,35 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         }
     }
 
+    private void routeToSuccess(final ProcessSession session, Object content) {
+        // Attributes for success and retry flow files
+        final Map<String, String> attributes = new Hashtable<>();
+        attributes.put("Content-Type", "application/json; charset=utf-8");
+        attributes.put("mime.type", "application/json");
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(content);
+
+        //If event is created, put the response in the succes flow file
+        FlowFile succesFlowFile = session.create();
+        succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
+        session.write(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+        session.transfer(succesFlowFile, REL_SUCCESS);
+    }
+
     private List<Event> getGraphEvents(String userId) {
         //Get all events for the next tree full working weeks
         final LocalDate dateEnd = LocalDate.now();
         final LocalDate dateStartInitial = LocalDate.now().plusWeeks(GRAPH_WEEKS_IN_ADVANCE);
         final LocalDate dateStart = dateStartInitial.plusDays(7 - dateStartInitial.getDayOfWeek().getValue());
 
+        LinkedList<Option> requestOptions = new LinkedList<Option>();
+        requestOptions.add(new HeaderOption("Prefer", "outlook.timezone=\"Europe/Berlin\""));
+
         EventCollectionPage eventCollectionPage = msGraphClientAtomicRef.get()
                 .users(userId)
                 .events()
-                .buildRequest()
+                .buildRequest(requestOptions)
                 .select("id, transactionId, subject, Body, start, end, location, showAs")
                 .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd.toString(), dateStart.toString()))
                 .get();
@@ -232,10 +258,23 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         return diffEvents;
     }
 
-    private byte[] createHashedEvent(Event evt) throws NoSuchAlgorithmException {
+    private byte[] createHashedEvent(Event evt, Boolean isGraphEvent) throws NoSuchAlgorithmException, ParseException {
         StringBuilder sb = new StringBuilder();
-        if (evt.start != null) sb.append(evt.start.dateTime);
-        if (evt.end != null) sb.append(evt.end.dateTime);
+        if (isGraphEvent) {
+            DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+            if (evt.start != null) {
+                LocalDateTime dtStart = LocalDateTime.parse(evt.start.dateTime);
+                String test = dtStart.format(dtFormatter);
+                sb.append(dtStart.format(dtFormatter));
+            }
+            if (evt.end != null) {
+                LocalDateTime dtEnd = LocalDateTime.parse(evt.start.dateTime);
+                sb.append(dtEnd.format(dtFormatter));
+            }
+        } else {
+            if (evt.start != null) sb.append(evt.start.dateTime);
+            if (evt.end != null) sb.append(evt.end.dateTime);
+        }
         sb.append(evt.subject);
         if (evt.body != null) sb.append(evt.body.content);
         if (evt.location != null) sb.append(evt.location.displayName);
@@ -247,31 +286,35 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         return hashedEvent;
     }
 
+    private byte[] createHashedEvent(Event evt) throws NoSuchAlgorithmException, ParseException {
+        return createHashedEvent(evt, false);
+    }
+
     //Patch events for user if event has changed
-    private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache)
-            throws IOException, NoSuchAlgorithmException {
+    private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
+            throws IOException, NoSuchAlgorithmException, ParseException {
         //Are there any changes in the source event?
         //Patch the graph with the changed event
         //Update the cache with the changed event
         for (Event evt : eventsSource) {
-            byte[] hashedEvt = createHashedEvent(evt);
-            byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
+            try {
+                byte[] hashedEvt = createHashedEvent(evt);
+                byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
-            if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
-                try {
+                if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
                     final Event eventToPatch = eventsGraph.stream()
-                            .filter(event -> event.transactionId != null )
+                            .filter(event -> event.transactionId != null)
                             .filter(event -> event.transactionId.equals(evt.transactionId))
                             .findAny().get();
-                    msGraphClientAtomicRef.get()
+                    routeToSuccess(session, (Object) msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(eventToPatch.id)
                             .buildRequest()
-                            .patch(evt);
+                            .patch(evt));
                     cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
-                } catch (NoSuchElementException e) {
-                    getLogger().error(String.format("Source event with transactionId %s couldn't be patched.", evt.transactionId));
                 }
+            } catch (NoSuchElementException e) {
+                getLogger().error(String.format("Source event with transactionId %s couldn't be patched.", evt.transactionId));
             }
         }
         //Are there any changes in the graph event?
@@ -283,22 +326,24 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             if (evt.transactionId == null)
                 continue;
 
-            byte[] hashedEvt = createHashedEvent(evt);
-            byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
+            try {
+                byte[] hashedEvt = createHashedEvent(evt, true);
+                byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
-            if (hashedCashedEvt != null & !Arrays.equals(hashedEvt, hashedCashedEvt)) {
-                try {
+                if (hashedCashedEvt != null & !Arrays.equals(hashedEvt, hashedCashedEvt)) {
                     final Event eventPatchVal = eventsSource.stream()
                             .filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
                     eventPatchVal.showAs = FreeBusyStatus.BUSY;
-                    msGraphClientAtomicRef.get()
+                    routeToSuccess(session, (Object) msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(evt.id)
                             .buildRequest()
-                            .patch(eventPatchVal);
-                } catch (NoSuchElementException e) {
-                    getLogger().info(String.format("Graph event with transactionId %s and subject %s couldn't be patched.", evt.transactionId, evt.subject));
+                            .patch(eventPatchVal));
+                    cache.put(eventPatchVal.transactionId, createHashedEvent(eventPatchVal), keySerializer, valueSerializer);
                 }
+            } catch (NoSuchElementException e) {
+                getLogger().info(String.format("Graph event with transactionId %s and subject %s couldn't be patched.", evt.transactionId, evt.subject));
+
             }
         }
 
@@ -319,11 +364,11 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             eventPatchVal.showAs = FreeBusyStatus.TENTATIVE;
 
             try {
-                msGraphClientAtomicRef.get()
+                routeToSuccess(session, (Object) msGraphClientAtomicRef.get()
                         .users(userId)
                         .events(evt.id)
                         .buildRequest()
-                        .patch(eventPatchVal);
+                        .patch(eventPatchVal));
             } catch (NoSuchElementException e) {
                 getLogger().error(String.format("Graph event with transactionId %s couldn't be patched to state tentative.", evt.transactionId));
             }
@@ -331,7 +376,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     //Put a hash of the events in a distributed mapcache so we can detect changes
-    private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException {
+    private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException, ParseException {
         for (Event evt : events) {
             byte[] hashedEvt = createHashedEvent(evt);
             cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
@@ -372,10 +417,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             for (BatchResponseStep batchResponseStep : batchResponseContent.responses) {
                 if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
                     //If event is created, put the response in the succes flow file
-                    FlowFile succesFlowFile = session.create();
-                    succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
-                    session.write(succesFlowFile, out -> IOUtils.write(gson.toJson(batchResponseStep.body), out, StandardCharsets.UTF_8));
-                    session.transfer(succesFlowFile, REL_SUCCESS);
+                    routeToSuccess(session, batchResponseStep.body);
                 } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
                     //In case of the following error codes (429, 503, 504)
                     //put the event from the hashtable in a flow file and route to retry
@@ -482,7 +524,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
             //Are there any events that have changed?
             //If so patch them in the graph
-            patchGraphEvents(userId, eventsSource, eventsGraph, cache);
+            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session);
 
             //Only synchronize events that are not already in the graph
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
@@ -496,7 +538,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             // The original flowfile hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
-        } catch (GraphServiceException | IOException | NoSuchAlgorithmException e) {
+        } catch (GraphServiceException | IOException | NoSuchAlgorithmException | ParseException e) {
             //Error in performing request to Microsoft Graph
             //We can't recover from this so route to failure handler
             routeToFaillure(requestFlowFile, logger, session, context, e);
