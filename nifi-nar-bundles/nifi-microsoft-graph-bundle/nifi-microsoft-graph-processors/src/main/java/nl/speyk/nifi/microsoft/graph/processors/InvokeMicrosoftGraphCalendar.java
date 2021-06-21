@@ -71,6 +71,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -210,13 +212,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         final LocalDate dateStartInitial = LocalDate.now().plusWeeks(GRAPH_WEEKS_IN_ADVANCE);
         final LocalDate dateStart = dateStartInitial.plusDays(7 - dateStartInitial.getDayOfWeek().getValue());
 
-        LinkedList<Option> requestOptions = new LinkedList<Option>();
-        requestOptions.add(new HeaderOption("Prefer", "outlook.timezone=\"Europe/Berlin\""));
-
         EventCollectionPage eventCollectionPage = msGraphClientAtomicRef.get()
                 .users(userId)
                 .events()
-                .buildRequest(requestOptions)
+                .buildRequest()
                 .select("id, transactionId, subject, Body, start, end, location, showAs")
                 .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd.toString(), dateStart.toString()))
                 .get();
@@ -258,27 +257,23 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         return diffEvents;
     }
 
-    private byte[] createHashedEvent(Event evt, Boolean isGraphEvent) throws NoSuchAlgorithmException, ParseException {
+    private byte[] createHashedEvent(Event evt, Boolean isGraphEvent) throws NoSuchAlgorithmException {
         StringBuilder sb = new StringBuilder();
+        //A graph event has a different datetime format, hence we convert it.
         if (isGraphEvent) {
-            DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-            if (evt.start != null) {
-                LocalDateTime dtStart = LocalDateTime.parse(evt.start.dateTime);
-                String test = dtStart.format(dtFormatter);
-                sb.append(dtStart.format(dtFormatter));
-            }
-            if (evt.end != null) {
-                LocalDateTime dtEnd = LocalDateTime.parse(evt.start.dateTime);
-                sb.append(dtEnd.format(dtFormatter));
-            }
+            DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.of("Europe/Berlin"));
+            ZonedDateTime dtStart = LocalDateTime.parse(evt.start.dateTime).atZone(ZoneId.of("UTC"));
+            sb.append(dtStart.format(dtFormatter));
+            ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
+            sb.append(dtEnd.format(dtFormatter));
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
         }
         sb.append(evt.subject);
-        if (evt.body != null) sb.append(evt.body.content);
+        final String bodyContent = (evt.body.content == null) ? "" : evt.body.content;
+        sb.append(bodyContent);
         if (evt.location != null) sb.append(evt.location.displayName);
-        sb.append(evt.showAs);
 
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         byte[] hashedEvent = messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
@@ -327,10 +322,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 continue;
 
             try {
-                byte[] hashedEvt = createHashedEvent(evt, true);
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
+                //Graph event isn't an event managed by DIS, so skip
+                if (hashedCashedEvt == null)
+                    continue;
+                byte[] hashedEvt = createHashedEvent(evt, true);
 
-                if (hashedCashedEvt != null & !Arrays.equals(hashedEvt, hashedCashedEvt)) {
+                if (!Arrays.equals(hashedEvt, hashedCashedEvt)) {
                     final Event eventPatchVal = eventsSource.stream()
                             .filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
                     eventPatchVal.showAs = FreeBusyStatus.BUSY;
