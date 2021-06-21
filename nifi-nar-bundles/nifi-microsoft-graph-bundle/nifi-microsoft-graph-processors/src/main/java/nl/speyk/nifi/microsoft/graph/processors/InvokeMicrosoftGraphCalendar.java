@@ -30,8 +30,6 @@ import com.microsoft.graph.http.HttpMethod;
 import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.Event;
 import com.microsoft.graph.models.FreeBusyStatus;
-import com.microsoft.graph.options.HeaderOption;
-import com.microsoft.graph.options.Option;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
@@ -66,9 +64,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -322,6 +318,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 continue;
 
             try {
+                //We don't want to filter TENTATVIE events, because it's possible we
+                //want to reenable them
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
                 //Graph event isn't an event managed by DIS, so skip
                 if (hashedCashedEvt == null)
@@ -340,8 +338,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     cache.put(eventPatchVal.transactionId, createHashedEvent(eventPatchVal), keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
-                getLogger().info(String.format("Graph event with transactionId %s and subject %s couldn't be patched.", evt.transactionId, evt.subject));
-
+                getLogger().info(String.format("Graph event with transactionId %s with status %s and subject %s couldn't be patched.", evt.transactionId, evt.showAs.name(), evt.subject));
             }
         }
 
