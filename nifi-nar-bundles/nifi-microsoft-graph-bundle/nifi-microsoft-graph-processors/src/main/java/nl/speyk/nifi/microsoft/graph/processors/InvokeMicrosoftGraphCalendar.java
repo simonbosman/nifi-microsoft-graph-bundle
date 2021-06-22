@@ -330,11 +330,15 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     final Event eventPatchVal = eventsSource.stream()
                             .filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
                     eventPatchVal.showAs = FreeBusyStatus.BUSY;
-                    routeToSuccess(session, (Object) msGraphClientAtomicRef.get()
+                    Object content = (Object) msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(evt.id)
                             .buildRequest()
-                            .patch(eventPatchVal));
+                            .patch(eventPatchVal);
+                    //Only route to succes if event is not already tentative
+                    if (!evt.showAs.equals(FreeBusyStatus.TENTATIVE)) {
+                        routeToSuccess(session, content);
+                    }
                     cache.put(eventPatchVal.transactionId, createHashedEvent(eventPatchVal), keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
@@ -348,6 +352,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         for (Event evt : eventsToDelete) {
             //Is the event managed by DIS? If not skip.
             if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
+                continue;
+            //Is the event already tentative?
+            if (evt.showAs.equals(FreeBusyStatus.TENTATIVE))
                 continue;
             Event eventPatchVal = new Event();
             eventPatchVal.start = evt.start;
