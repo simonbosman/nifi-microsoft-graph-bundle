@@ -267,6 +267,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             if (evt.end != null) sb.append(evt.end.dateTime);
         }
         sb.append(evt.subject);
+        //TODO Body.content is different from the Graph -> FIXME
         final String bodyContent = (evt.body.content == null) ? "" : evt.body.content;
         sb.append(bodyContent);
         if (evt.location != null) sb.append(evt.location.displayName);
@@ -326,7 +327,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     continue;
                 byte[] hashedEvt = createHashedEvent(evt, true);
 
-                if (!Arrays.equals(hashedEvt, hashedCashedEvt)) {
+                //Graph event has changed or is tentative, so fix this
+                if (!Arrays.equals(hashedEvt, hashedCashedEvt) || evt.showAs == FreeBusyStatus.TENTATIVE) {
+                    //Is the event available in the source dataset? If not it's deleted.
                     final Event eventPatchVal = eventsSource.stream()
                             .filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
                     eventPatchVal.showAs = FreeBusyStatus.BUSY;
@@ -342,12 +345,14 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     cache.put(eventPatchVal.transactionId, createHashedEvent(eventPatchVal), keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
-                getLogger().info(String.format("Graph event with transactionId %s with status %s and subject %s couldn't be patched.", evt.transactionId, evt.showAs.name(), evt.subject));
+                getLogger().info(String.format("Graph event with transactionId %s with status %s and subject %s couldn't be patched. " +
+                        "Most likely the event is deleted from the source dataset.", evt.transactionId, evt.showAs.name(), evt.subject));
             }
         }
 
         //Is the set of events greater in the graph than in source?
         //Make event in the graph tentative
+        //TODO: What if eventsSource is empty?
         List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
         for (Event evt : eventsToDelete) {
             //Is the event managed by DIS? If not skip.
@@ -521,6 +526,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 events = new Event[]{};
             }
 
+            if (events.length == 0) {
+                //Source set is empty, we don't want to
+                //set all the events on tentative, so stop with an error
+                throw new ProcessException("The source dataset is empty.");
+            }
+
             final List<Event> eventsSource = Arrays.asList(events);
             final List<Event> eventsGraph = getGraphEvents(userId);
 
@@ -535,7 +546,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             putBatchGraphEvents(context, session, eventsToGraph, userId, requestFlowFile);
 
             //Put the events in a mapcache
-            putEventsMapCache(eventsToGraph, cache);
+            putEventsMapCache(eventsSource, cache);
 
             // The original flowfile hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
