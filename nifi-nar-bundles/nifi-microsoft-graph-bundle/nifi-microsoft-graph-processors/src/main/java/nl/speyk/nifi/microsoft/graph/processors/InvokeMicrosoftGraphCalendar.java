@@ -59,6 +59,8 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.util.StandardValidators;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Entities;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -212,7 +214,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 .users(userId)
                 .events()
                 .buildRequest()
-                .select("id, transactionId, subject, Body, start, end, location, showAs")
+                .select("id, transactionId, subject, body, bodyPreview, start, end, location, showAs")
                 .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd.toString(), dateStart.toString()))
                 .get();
 
@@ -262,14 +264,19 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(dtStart.format(dtFormatter));
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
+            //Strip line feeds and carriage returns
+            final String bodyContent = (evt.bodyPreview == null) ? "" : evt.bodyPreview.replaceAll("\\R+", " ");
+            //We only use tha last added 255 characters
+            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 255));
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
+            //Html entities decode and strip html
+            final String bodyContent = (evt.body.content == null) ? "" : Entities.unescape(Jsoup.parse(evt.body.content).text());
+            //We only use the last added 255 characters
+            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 255));
         }
         sb.append(evt.subject);
-        //TODO Body.content is different from the Graph -> FIXME
-        final String bodyContent = (evt.body.content == null) ? "" : evt.body.content;
-        sb.append(bodyContent);
         if (evt.location != null) sb.append(evt.location.displayName);
 
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
@@ -319,8 +326,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 continue;
 
             try {
-                //We don't want to filter TENTATVIE events, because it's possible we
-                //want to reenable them
+                //We don't want to filter TENTATIVE events, because it's possible we
+                //want to re-enable them
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
                 //Graph event isn't an event managed by DIS, so skip
                 if (hashedCashedEvt == null)
@@ -352,7 +359,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
         //Is the set of events greater in the graph than in source?
         //Make event in the graph tentative
-        //TODO: What if eventsSource is empty?
         List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
         for (Event evt : eventsToDelete) {
             //Is the event managed by DIS? If not skip.
@@ -526,9 +532,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 events = new Event[]{};
             }
 
+            //Source set is empty, we don't want to
+            //set all the events on tentative, so stop with an error
             if (events.length == 0) {
-                //Source set is empty, we don't want to
-                //set all the events on tentative, so stop with an error
                 throw new ProcessException("The source dataset is empty.");
             }
 
