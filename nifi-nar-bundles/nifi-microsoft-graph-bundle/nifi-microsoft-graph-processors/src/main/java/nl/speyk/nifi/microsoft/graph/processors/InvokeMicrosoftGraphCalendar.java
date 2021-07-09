@@ -84,12 +84,6 @@ import java.util.stream.Collectors;
         @WritesAttribute(attribute = "invokeMSGraph.java.exception.class", description = "The Java exception class raised when the processor fails"),
         @WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "The Java exception message raised when the processor fails")})
 public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
-    // Allowed http methods
-    public final static String GRAPH_METHOD_GET = "GET";
-    public final static String GRAPH_METHOD_POST = "POST";
-    public final static String GRAPH_METHOD_PATCH = "PATCH";
-    public final static String GRAPH_METHOD_DELETE = "DELETE";
-
     //For how many full working weeks we will synchronize
     //the appointments in advance
     public final static int GRAPH_WEEKS_IN_ADVANCE = 3;
@@ -121,15 +115,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             .description("Distributed mapcache client used for detecting changes")
             .required(true)
             .identifiesControllerService(DistributedMapCacheClient.class)
-            .build();
-
-    public static final PropertyDescriptor GRAPH_PROP_METHOD = new PropertyDescriptor.Builder()
-            .name("mg-cs-graph-prop-method")
-            .displayName("HTTP Method")
-            .description("HTTP request method (GET, POST, PUT, PATCH, DELETE)")
-            .required(true)
-            .defaultValue(GRAPH_METHOD_POST)
-            .allowableValues(GRAPH_METHOD_GET, GRAPH_METHOD_POST, GRAPH_METHOD_PATCH, GRAPH_METHOD_DELETE)
             .build();
 
     public static final PropertyDescriptor GRAPH_USER_ID = new PropertyDescriptor.Builder()
@@ -460,7 +445,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     @Override
     protected void init(final ProcessorInitializationContext context) {
         this.relationships = Set.of(REL_SUCCESS, REL_RETRY, REL_FAILURE, REL_ORIGINAL);
-        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_PROP_METHOD, GRAPH_USER_ID);
+        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_USER_ID);
     }
 
     @Override
@@ -493,7 +478,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         }
 
         final ComponentLog logger = getLogger();
-        final String httpMethod = context.getProperty(GRAPH_PROP_METHOD).getValue();
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile).getValue();
 
         if (msGraphClientAtomicRef.get() == null) {
