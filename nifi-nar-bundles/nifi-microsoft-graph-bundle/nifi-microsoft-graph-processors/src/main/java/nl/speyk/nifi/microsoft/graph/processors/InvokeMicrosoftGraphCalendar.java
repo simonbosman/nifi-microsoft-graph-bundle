@@ -117,7 +117,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             .identifiesControllerService(DistributedMapCacheClient.class)
             .build();
 
-    public static final PropertyDescriptor GRAPH_USER_ID = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor   GRAPH_USER_ID = new PropertyDescriptor.Builder()
             .name("mg-cs-user-id")
             .displayName("User Id")
             .description("The user id to be used for Microsoft Graph api calls.")
@@ -203,7 +203,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd.toString(), dateStart.toString()))
                 .get();
 
-        //Loop trrough available pages and fill list of events
+        //Loop trough available pages and fill list of events
         List<Event> events = new LinkedList<>();
         while (eventCollectionPage != null) {
             events.addAll(eventCollectionPage.getCurrentPage());
@@ -283,6 +283,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         for (Event evt : eventsSource) {
             try {
                 byte[] hashedEvt = createHashedEvent(evt);
+                if (evt.transactionId == null) {
+                    throw new IllegalArgumentException("TransactionId cant't be empty");
+                }
                 byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
                 if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
@@ -463,7 +466,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         if (msGraphClientAtomicRef.get() != null) {
             return;
         }
-        // Get the controllerservice responsible for an authenticated GraphClient
+        // Get the controller-service responsible for an authenticated GraphClient
         // We will reuse the build GraphClient, hence we put it in a an atomic reference
         MicrosoftGraphCredentialService microsoftGraphCredentialService = context.getProperty(GRAPH_CONTROLLER_ID)
                 .asControllerService(MicrosoftGraphCredentialService.class);
@@ -541,7 +544,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             // The original flowfile hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
-        } catch (GraphServiceException | IOException | NoSuchAlgorithmException | ParseException e) {
+        } catch (GraphServiceException | IOException | NoSuchAlgorithmException |
+                 IllegalArgumentException | ParseException e) {
             //Error in performing request to Microsoft Graph
             //We can't recover from this so route to failure handler
             routeToFaillure(requestFlowFile, logger, session, context, e);
