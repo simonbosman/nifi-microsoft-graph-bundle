@@ -59,6 +59,7 @@ import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.ProcessorInitializationContext;
 import org.apache.nifi.processor.Relationship;
 import org.apache.nifi.processor.util.StandardValidators;
+import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Entities;
 
@@ -95,6 +96,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     public final static int GRAPH_HTTP_TO_MANY_REQUESTS = 429;
     public final static int GRAPH_HTTP_SERVICE_UNAVAILABLE = 503;
     public final static int GRAPH_HTTP_GATEWAY_TIMEOUT = 504;
+
+    // Something is wrong with the given json format
+    public final static int GRAPH_BAD_REQUEST = 400;
 
     // flowfile attribute keys returned after reading the response
     public final static String EXCEPTION_CLASS = "invokeMSGraph.java.exception.class";
@@ -195,10 +199,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         final LocalDate dateStartInitial = LocalDate.now().plusWeeks(GRAPH_WEEKS_IN_ADVANCE);
         final LocalDate dateStart = dateStartInitial.plusDays(7 - dateStartInitial.getDayOfWeek().getValue());
 
-        EventCollectionPage eventCollectionPage = msGraphClientAtomicRef.get()
+        EventCollectionPage eventCollectionPage = Objects.requireNonNull(msGraphClientAtomicRef.get()
                 .users(userId)
                 .events()
-                .buildRequest()
+                .buildRequest())
                 .select("id, transactionId, subject, body, bodyPreview, start, end, location, showAs")
                 .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd.toString(), dateStart.toString()))
                 .get();
@@ -240,7 +244,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         return diffEvents;
     }
 
-    private byte[] createHashedEvent(Event evt, Boolean isGraphEvent) throws NoSuchAlgorithmException {
+    private byte[] createHashedEvent(Event evt, @NotNull Boolean isGraphEvent) throws NoSuchAlgorithmException {
         StringBuilder sb = new StringBuilder();
         //A graph event has a different datetime format, hence we convert it.
         if (isGraphEvent) {
@@ -263,11 +267,15 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         }
         sb.append(evt.subject);
         if (evt.location != null) sb.append(evt.location.displayName);
-
+        else if (evt.locations != null) {
+            String joinedLocations = evt.locations.stream().map((loc) -> {
+                return loc.displayName;
+            }).collect(Collectors.joining("; "));
+            sb.append(joinedLocations);
+        }
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        byte[] hashedEvent = messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
 
-        return hashedEvent;
+        return messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private byte[] createHashedEvent(Event evt) throws NoSuchAlgorithmException, ParseException {
@@ -284,7 +292,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             try {
                 byte[] hashedEvt = createHashedEvent(evt);
                 if (evt.transactionId == null) {
-                    throw new IllegalArgumentException("TransactionId cant't be empty");
+                    throw new IllegalArgumentException("TransactionId can't be empty");
                 }
                 byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
@@ -337,7 +345,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     if (!evt.showAs.equals(FreeBusyStatus.TENTATIVE)) {
                         routeToSuccess(session, content);
                     }
-                    cache.put(eventPatchVal.transactionId, createHashedEvent(eventPatchVal), keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
                 getLogger().info(String.format("Graph event with transactionId %s with status %s and subject %s couldn't be patched. " +
