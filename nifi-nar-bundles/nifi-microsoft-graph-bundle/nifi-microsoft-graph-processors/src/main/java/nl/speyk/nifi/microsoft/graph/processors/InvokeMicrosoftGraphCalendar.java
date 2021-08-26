@@ -33,6 +33,7 @@ import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.serializer.ISerializer;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.commons.io.IOUtils;
@@ -240,8 +241,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         Set<String> difference = new HashSet<>(setSource);
         difference.removeAll(setGraph);
 
-        List<Event> diffEvents = eventsSource.stream().filter(event -> difference.contains(event.transactionId)).collect(Collectors.toList());
-        return diffEvents;
+        return eventsSource.stream().filter(event -> difference.contains(event.transactionId)).collect(Collectors.toList());
     }
 
     private byte[] createHashedEvent(Event evt, @NotNull Boolean isGraphEvent) throws NoSuchAlgorithmException {
@@ -266,6 +266,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(bodyContent, 0, Math.min(bodyContent.length(), 255));
         }
         sb.append(evt.subject);
+        sb.append(evt.showAs);
         if (evt.location != null) sb.append(evt.location.displayName);
         else if (evt.locations != null) {
             String joinedLocations = evt.locations.stream().map((loc) -> {
@@ -513,14 +514,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             eventsJson = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             inputStream.close();
 
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             JsonElement jsonElement = JsonParser.parseString(eventsJson);
 
             // Make sure we always have an array of events.
             if (jsonElement.isJsonArray()) {
-                events = gson.fromJson(eventsJson, Event[].class);
+                events = Objects.requireNonNull(msGraphClientAtomicRef.get().getSerializer()).deserializeObject(eventsJson, Event[].class);
             } else if (jsonElement.isJsonObject()) {
-                events = new Event[]{gson.fromJson(eventsJson, Event.class)};
+                events = new Event[]{Objects.requireNonNull(msGraphClientAtomicRef.get().getSerializer()).deserializeObject(eventsJson, Event.class)};
             } else {
                 logger.error("Not valid JSON or empty.");
                 events = new Event[]{};
@@ -528,22 +528,22 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
             //Source set is empty, we don't want to
             //set all the events on tentative, so stop with an error
-            if (events.length == 0) {
+            if (events == null || events.length == 0) {
                 throw new ProcessException("The source dataset is empty.");
             }
 
             final List<Event> eventsSource = Arrays.asList(events);
             final List<Event> eventsGraph = getGraphEvents(userId);
 
-            //Are there any events that have changed?
-            //If so patch them in the graph
-            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session);
-
             //Only synchronize events that are not already in the graph
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
             putBatchGraphEvents(context, session, eventsToGraph, userId, requestFlowFile);
+
+            //Are there any events that have changed?
+            //If so patch them in the graph
+            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session);
 
             //Put the events in a mapcache
             putEventsMapCache(eventsSource, cache);
