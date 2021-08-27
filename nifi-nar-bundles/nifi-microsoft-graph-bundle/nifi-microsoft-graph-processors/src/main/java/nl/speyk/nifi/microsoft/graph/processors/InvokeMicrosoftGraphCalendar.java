@@ -33,7 +33,6 @@ import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.serializer.ISerializer;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.commons.io.IOUtils;
@@ -162,8 +161,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     private final Serializer<byte[]> valueSerializer = new CacheValueSerializer();
     private final Deserializer<byte[]> valueDeserializer = new CacheValueDeserializer();
 
-    private void routeToFaillure(FlowFile requestFlowFile, final ComponentLog logger,
-                                 final ProcessSession session, final ProcessContext context, final Exception e) {
+    private void routeToFailure(FlowFile requestFlowFile, final ComponentLog logger,
+                                final ProcessSession session, final ProcessContext context, final Exception e) {
         // penalize or yield
         if (requestFlowFile != null) {
             logger.error("Routing to {} due to exception: {}", new Object[]{REL_FAILURE.getName(), e}, e);
@@ -254,19 +253,22 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
             //Strip line feeds and carriage returns
-            final String bodyContent = (evt.bodyPreview == null) ? "" : evt.bodyPreview.replaceAll("\\R+", " ");
+            final String bodyContent = (evt.bodyPreview == null) ? "" : evt.bodyPreview.replaceAll("\\R+", " ")
+                    .replaceAll("\\s+","");
             //We only use tha last added 255 characters
-            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 255));
+            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 200));
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
             //Html entities decode and strip html
-            final String bodyContent = (evt.body.content == null) ? "" : Entities.unescape(Jsoup.parse(evt.body.content).text());
+            final String bodyContent = (evt.body.content == null) ? "" : Entities.unescape(Jsoup.parse(evt.body.content).text())
+                    .replaceAll("\\s+","");
             //We only use the last added 255 characters
-            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 255));
+            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 200));
         }
         sb.append(evt.subject);
-        sb.append(evt.showAs);
+        if (evt.showAs != null) sb.append(evt.showAs.name());
+        //TODO: location/locations what to chhose?
         if (evt.location != null) sb.append(evt.location.displayName);
         else if (evt.locations != null) {
             String joinedLocations = evt.locations.stream().map((loc) -> {
@@ -275,7 +277,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(joinedLocations);
         }
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-
         return messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -304,7 +305,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .findAny().get();
                     routeToSuccess(session, (Object) msGraphClientAtomicRef.get()
                             .users(userId)
-                            .events(eventToPatch.id)
+                            .events(Objects.requireNonNull(eventToPatch.id))
                             .buildRequest()
                             .patch(evt));
                     cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
@@ -321,35 +322,30 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             //Event not managed by DIS, so continue
             if (evt.transactionId == null)
                 continue;
-
             try {
-                //We don't want to filter TENTATIVE events, because it's possible we
-                //want to re-enable them
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
                 //Graph event isn't an event managed by DIS, so skip
                 if (hashedCashedEvt == null)
                     continue;
                 byte[] hashedEvt = createHashedEvent(evt, true);
-
-                //Graph event has changed or is tentative, so fix this
-                if (!Arrays.equals(hashedEvt, hashedCashedEvt) || evt.showAs == FreeBusyStatus.TENTATIVE) {
+                //Graph event has changed, so fix this
+                if (!Arrays.equals(hashedEvt, hashedCashedEvt)) {
                     //Is the event available in the source dataset? If not it's deleted.
                     final Event eventPatchVal = eventsSource.stream()
-                            .filter(event -> event.transactionId.equals(evt.transactionId)).findAny().get();
-                    eventPatchVal.showAs = FreeBusyStatus.BUSY;
+                            .filter(event -> {
+                                return Objects.equals(event.transactionId, evt.transactionId);
+                            }).findAny().orElseThrow();
                     Object content = (Object) msGraphClientAtomicRef.get()
                             .users(userId)
-                            .events(evt.id)
+                            .events(Objects.requireNonNull(evt.id))
                             .buildRequest()
                             .patch(eventPatchVal);
-                    //Only route to succes if event is not already tentative
-                    if (!evt.showAs.equals(FreeBusyStatus.TENTATIVE)) {
-                        routeToSuccess(session, content);
-                    }
+                    routeToSuccess(session, content);
                 }
             } catch (NoSuchElementException e) {
+                String unknown = "unknown";
                 getLogger().info(String.format("Graph event with transactionId %s with status %s and subject %s couldn't be patched. " +
-                        "Most likely the event is deleted from the source dataset.", evt.transactionId, evt.showAs.name(), evt.subject));
+                        "Most likely the event is deleted from the source dataset.", evt.transactionId, evt.showAs != null ? evt.showAs.name() : unknown, evt.subject));
             }
         }
 
@@ -483,6 +479,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
     @Override
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
+        //Here we do the actual work
         FlowFile requestFlowFile = session.get();
         if (requestFlowFile == null) {
             return;
@@ -548,14 +545,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             //Put the events in a mapcache
             putEventsMapCache(eventsSource, cache);
 
-            // The original flowfile hasn't changed
+            // The original flow file hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
-        } catch (GraphServiceException | IOException | NoSuchAlgorithmException |
-                 IllegalArgumentException | ParseException e) {
+        } catch (GraphServiceException | IOException | NoSuchAlgorithmException | IllegalArgumentException | ParseException e) {
             //Error in performing request to Microsoft Graph
             //We can't recover from this so route to failure handler
-            routeToFaillure(requestFlowFile, logger, session, context, e);
+            routeToFailure(requestFlowFile, logger, session, context, e);
         }
         // sometimes JSON batching causes socket timeouts; catch them and retry
         catch (ClientException exceptionToRetry) {
