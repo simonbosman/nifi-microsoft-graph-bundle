@@ -67,7 +67,7 @@ public class MicrosoftGraphCredentialControllerService extends AbstractControlle
         this.context = context;
     }
 
-    private GraphServiceClient setupGraphClient(ConfigurationContext context) {
+    private GraphServiceClient<Request> setupGraphClient(ConfigurationContext context) {
 
         final String clientId = context.getProperty(AUTH_CLIENT_ID).getValue();
         final String tenantId = context.getProperty(AUTH_TENANT_ID).getValue();
@@ -90,12 +90,10 @@ public class MicrosoftGraphCredentialControllerService extends AbstractControlle
                 .connectTimeout(30L, TimeUnit.SECONDS)
                 .build();
 
-        final GraphServiceClient graphClient = GraphServiceClient
+        return GraphServiceClient
                 .builder()
                 .httpClient(httpClient)
                 .buildClient();
-
-        return graphClient;
     }
 
     @Override
