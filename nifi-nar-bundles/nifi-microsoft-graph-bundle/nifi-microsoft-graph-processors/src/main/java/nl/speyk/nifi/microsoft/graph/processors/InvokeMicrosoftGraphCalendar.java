@@ -271,7 +271,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 return loc.displayName;
             }).collect(Collectors.joining("; "));
             sb.append(joinedLocations);
-        }{
+        }
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         return messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
     }

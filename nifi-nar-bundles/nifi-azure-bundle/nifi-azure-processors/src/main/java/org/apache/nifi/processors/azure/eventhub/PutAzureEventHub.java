@@ -200,7 +200,7 @@ public class PutAzureEventHub extends AbstractProcessor {
         final int maxBatchSize = NumberUtils.toInt(context.getProperty(MAX_BATCH_SIZE).getValue(), 100);
         final List<FlowFile> flowFileList = session.get(maxBatchSize);
 
-        // Convert and send each flow file
+        // Convert and each flow file
         final BlockingQueue<CompletableFuture<FlowFileResultCarrier<Relationship>>> futureQueue = new LinkedBlockingQueue<>();
         for (FlowFile flowFile : flowFileList) {
             if (flowFile == null) {
