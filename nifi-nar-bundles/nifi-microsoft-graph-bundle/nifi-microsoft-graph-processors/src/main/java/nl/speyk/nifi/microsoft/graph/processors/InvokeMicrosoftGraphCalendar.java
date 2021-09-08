@@ -321,8 +321,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
         //Effectually restoring manual changes to the graph
         for (Event evt : eventsGraph) {
             //Event not managed by DIS, so continue
-            if (evt.transactionId == null)
-                continue;
+            if (evt.transactionId == null) continue;
             try {
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
                 //Graph event isn't an event managed by DIS, so skip
@@ -336,6 +335,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .filter(event -> {
                                 return Objects.equals(event.transactionId, evt.transactionId);
                             }).findAny().orElseThrow();
+
+                    //Event has on online link, keep it and continue
+                    if (eventPatchVal.isOnlineMeeting != null && eventPatchVal.isOnlineMeeting) continue;
+
                     Object content = msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(Objects.requireNonNull(evt.id))
