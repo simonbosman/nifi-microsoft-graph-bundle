@@ -258,7 +258,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
             //Html entities decode and strip html
-            final String bodyContent = (evt.body == null || evt.body.content == null) ? "" : Entities.unescape(Jsoup.parse(evt.body.content).html())
+            final String bodyContent = (evt.body == null || evt.body.content == null) ? "" : Entities.unescape(Jsoup.parse(evt.body.content).text())
                     .replaceAll("\\s+", "");
             //We only use the last added 200 characters
             sb.append(bodyContent, 0, Math.min(bodyContent.length(), 200));
@@ -271,7 +271,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 return loc.displayName;
             }).collect(Collectors.joining("; "));
             sb.append(joinedLocations);
-        }
+        }{
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         return messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
