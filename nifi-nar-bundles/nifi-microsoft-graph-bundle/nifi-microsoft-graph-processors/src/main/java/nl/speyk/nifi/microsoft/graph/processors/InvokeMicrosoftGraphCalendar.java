@@ -249,19 +249,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(dtStart.format(dtFormatter));
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
-            //Strip line feeds and carriage returns
-            final String bodyContent = (evt.bodyPreview == null) ? "" : evt.bodyPreview.replaceAll("\\R+", " ")
-                    .replaceAll("\\s+", "");
-            //We only use tha last added 200 characters
-            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 200));
-        } else {
+         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
-            //Html entities decode and strip html
-            final String bodyContent = (evt.body == null || evt.body.content == null) ? "" : Entities.unescape(Jsoup.parse(evt.body.content).text())
-                    .replaceAll("\\s+", "");
-            //We only use the last added 200 characters
-            sb.append(bodyContent, 0, Math.min(bodyContent.length(), 200));
         }
         sb.append(evt.subject);
         if (evt.showAs != null) sb.append(evt.showAs.name());
@@ -293,7 +283,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     evt.body.contentType = BodyType.HTML;
                     evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
                 }
-                    byte[] hashedEvt = createHashedEvent(evt);
+                byte[] hashedEvt = createHashedEvent(evt);
                 if (evt.transactionId == null) {
                     throw new IllegalArgumentException("TransactionId can't be empty");
                 }
@@ -312,7 +302,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                     cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
-                getLogger().error(String.format("Source event with transactionId %s couldn't be patched.", evt.transactionId));
+                getLogger().error(String.format("Source event with transactionId %s couldn't be patched. " +
+                        "Most likely the event has just been created", evt.transactionId));
             }
         }
         //Are there any changes in the graph event?
@@ -335,9 +326,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .filter(event -> {
                                 return Objects.equals(event.transactionId, evt.transactionId);
                             }).findAny().orElseThrow();
-
-                    //Event has on online link, keep it and continue
-                    if (eventPatchVal.isOnlineMeeting != null && eventPatchVal.isOnlineMeeting) continue;
 
                     Object content = msGraphClientAtomicRef.get()
                             .users(userId)
