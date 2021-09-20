@@ -76,6 +76,14 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.EXCEPTION_CLASS;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.EXCEPTION_MESSAGE;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_HTTP_GATEWAY_TIMEOUT;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_HTTP_SERVICE_UNAVAILABLE;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_HTTP_TO_MANY_REQUESTS;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_MAILBOX_CONCURRENCY_LIMIT;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_WEEKS_IN_ADVANCE;
+
 @Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
 @SeeAlso({})
@@ -84,24 +92,6 @@ import java.util.stream.Collectors;
         @WritesAttribute(attribute = "invokeMSGraph.java.exception.class", description = "The Java exception class raised when the processor fails"),
         @WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "The Java exception message raised when the processor fails")})
 public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
-    //For how many full working weeks we will synchronize
-    //the appointments in advance
-    public final static int GRAPH_WEEKS_IN_ADVANCE = 3;
-
-    // Microsoft allows max 4 concurrent tasks on a mailbox
-    public final static int GRAPH_MAILBOX_CONCURRENCY_LIMIT = 4;
-
-    // We want to retry in case of the following errors
-    public final static int GRAPH_HTTP_TO_MANY_REQUESTS = 429;
-    public final static int GRAPH_HTTP_SERVICE_UNAVAILABLE = 503;
-    public final static int GRAPH_HTTP_GATEWAY_TIMEOUT = 504;
-
-    // Something is wrong with the given json format
-    public final static int GRAPH_BAD_REQUEST = 400;
-
-    // flowfile attribute keys returned after reading the response
-    public final static String EXCEPTION_CLASS = "invokeMSGraph.java.exception.class";
-    public final static String EXCEPTION_MESSAGE = "invokeMSGraph.java.exception.message";
 
     // Properties
     public final static PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor.Builder()
@@ -127,6 +117,16 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
             .defaultValue("${'upn-name'}")
+            .required(true)
+            .build();
+
+    public static final PropertyDescriptor GRAPH_IS_UPDATE = new PropertyDescriptor.Builder()
+            .name("mg-cs-is-update")
+            .displayName("Is Update")
+            .description("Attribute to use for isUpdate value")
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .defaultValue("${'is-update'}")
             .required(true)
             .build();
 
@@ -271,7 +271,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     //Patch events for user if event has changed
-    private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
+    private void patchGraphEvents(String userId,
+                                  List<Event> eventsSource,
+                                  List<Event> eventsGraph,
+                                  DistributedMapCacheClient cache,
+                                  ProcessSession session,
+                                  boolean isUpdate)
             throws IOException, NoSuchAlgorithmException, ParseException {
         //Are there any changes in the source event?
         //Patch the graph with the changed event
@@ -299,13 +304,16 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .events(Objects.requireNonNull(eventToPatch.id))
                             .buildRequest()
                             .patch(evt));
-                    cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
+                    //cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
                 getLogger().error(String.format("Source event with transactionId %s couldn't be patched. " +
                         "Most likely the event has just been created", evt.transactionId));
             }
         }
+        //If we are updating, we stop here
+        if (isUpdate) return;
+
         //Are there any changes in the graph event?
         //Patch the graph event with the original event
         //from the list of source events
@@ -452,7 +460,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     @Override
     protected void init(final ProcessorInitializationContext context) {
         this.relationships = Set.of(REL_SUCCESS, REL_RETRY, REL_FAILURE, REL_ORIGINAL);
-        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_USER_ID);
+        this.descriptors = List.of(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_USER_ID, GRAPH_IS_UPDATE);
     }
 
     @Override
@@ -487,6 +495,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
         final ComponentLog logger = getLogger();
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile).getValue();
+        final boolean isUpdate = Boolean.parseBoolean(context.getProperty(GRAPH_IS_UPDATE).evaluateAttributeExpressions(requestFlowFile).getValue());
 
         if (msGraphClientAtomicRef.get() == null) {
             logger.error("Microsoft Graph Client is not available.");
@@ -540,7 +549,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
 
             //Are there any events that have changed?
             //If so patch them in the graph
-            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session);
+            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate);
 
             //Put the events in a map cache
             putEventsMapCache(eventsSource, cache);
