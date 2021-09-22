@@ -20,7 +20,7 @@ public final class CalendarAttributes {
     public final static String EXCEPTION_CLASS = "invokeMSGraph.java.exception.class";
     public final static String EXCEPTION_MESSAGE = "invokeMSGraph.java.exception.message";
 
-   //Compounded key(partition/row) for storing events in a distributed mapc ache
-    public final static String PARTITIION_KEY = "event";
+   //Compounded key(partition/row) for storing events in a distributed map cache
+    public final static String PARTITION_KEY = "event";
 
 }
