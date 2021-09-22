@@ -34,6 +34,7 @@ import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.serializer.ISerializer;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.commons.io.IOUtils;
@@ -60,9 +61,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Entities;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -74,15 +73,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.EXCEPTION_CLASS;
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.EXCEPTION_MESSAGE;
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_HTTP_GATEWAY_TIMEOUT;
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_HTTP_SERVICE_UNAVAILABLE;
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_HTTP_TO_MANY_REQUESTS;
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_MAILBOX_CONCURRENCY_LIMIT;
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.GRAPH_WEEKS_IN_ADVANCE;
+import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
 
 @Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
@@ -304,15 +298,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                             .events(Objects.requireNonNull(eventToPatch.id))
                             .buildRequest()
                             .patch(evt));
-                    //cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
                 }
             } catch (NoSuchElementException e) {
                 getLogger().error(String.format("Source event with transactionId %s couldn't be patched. " +
                         "Most likely the event has just been created", evt.transactionId));
             }
         }
-        //If we are updating, we stop here
-        if (isUpdate) return;
 
         //Are there any changes in the graph event?
         //Patch the graph event with the original event
@@ -329,11 +320,23 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                 byte[] hashedEvt = createHashedEvent(evt, true);
                 //Graph event has changed, so fix this
                 if (!Arrays.equals(hashedEvt, hashedCashedEvt)) {
-                    //Is the event available in the source dataset? If not it's deleted.
-                    final Event eventPatchVal = eventsSource.stream()
-                            .filter(event -> {
-                                return Objects.equals(event.transactionId, evt.transactionId);
-                            }).findAny().orElseThrow();
+                    //Is the event in the distributed map cache?
+                    byte[] cacheValue = cache.get(PARTITIION_KEY + evt.transactionId, keySerializer, valueDeserializer);
+                    if (cacheValue == null) {
+                        throw new NoSuchElementException();
+                    }
+
+                    final Event eventPatchVal =
+                              Objects.requireNonNull(msGraphClientAtomicRef
+                                              .get()
+                                              .getSerializer())
+                                    .deserializeObject(new String(cacheValue, StandardCharsets.UTF_8), Event.class);
+                    if(eventPatchVal == null) {
+                        throw new NoSuchAlgorithmException();
+                    }
+
+                    //We don't want to override the body context
+                    eventPatchVal.body = evt.body;
 
                     Object content = msGraphClientAtomicRef.get()
                             .users(userId)
@@ -348,6 +351,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
                         "Most likely the event is deleted from the source dataset.", evt.transactionId, evt.showAs != null ? evt.showAs.name() : unknown, evt.subject));
             }
         }
+
+        //If we are updating, we stop here
+        if (isUpdate) return;
 
         //Is the set of events greater in the graph than in source?
         //Make event in the graph tentative
@@ -381,12 +387,32 @@ public class InvokeMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     //Put a hash of the events in a distributed map cache, so we can detect changes
+    //We also put the original flow of an appointment in the map cache
     private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException, ParseException {
+
+        final Consumer<String> logError = (transactionId) -> {
+            getLogger().error("Could not put full event: %s in the distributed map cache.", transactionId);
+        };
+
         for (Event evt : events) {
             byte[] hashedEvt = createHashedEvent(evt);
             cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
+
+            final ISerializer serializer = Objects.requireNonNull(msGraphClientAtomicRef.get()).getSerializer();
+            if (serializer == null) {
+               logError.accept(evt.transactionId);
+               continue;
+            }
+
+            final String cacheValue= serializer.serializeObject(evt);
+            if (cacheValue == null) {
+                logError.accept(evt.transactionId);
+            }
+
+            cache.put(PARTITIION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer, valueSerializer);
         }
-    }
+
+     }
 
     private void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, final FlowFile requestFlowFile) throws ClientException {
         // Attributes for success and retry flow files
