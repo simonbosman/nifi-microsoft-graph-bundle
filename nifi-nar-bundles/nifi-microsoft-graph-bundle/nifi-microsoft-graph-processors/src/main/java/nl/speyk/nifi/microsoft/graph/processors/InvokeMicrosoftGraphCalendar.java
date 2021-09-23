@@ -98,7 +98,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
     }
 
-    private void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, final FlowFile requestFlowFile) throws ClientException {
+    private void putBatchGraphEvents(final ProcessContext context,
+                                     final ProcessSession session,
+                                     List<Event> events, String userId,
+                                     boolean isUpdate,
+                                     final FlowFile requestFlowFile)
+            throws ClientException {
         // Attributes for success and retry flow files
         final Map<String, String> attributes = new Hashtable<>();
         attributes.put("Content-Type", "application/json; charset=utf-8");
@@ -146,6 +151,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
 
                         FlowFile retryFLowFile = session.create();
                         attributes.put("upn-name", userId);
+                        attributes.put("is-update", Boolean.toString(isUpdate));
                         retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
 
                         //Use the RetryFLow processor for setting the max retries
@@ -226,7 +232,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
-            putBatchGraphEvents(context, session, eventsToGraph, userId, requestFlowFile);
+            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile);
 
             //Are there any events that have changed?
             //If so patch them in the graph

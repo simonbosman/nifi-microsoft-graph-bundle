@@ -26,7 +26,6 @@ import org.apache.nifi.distributed.cache.client.Serializer;
 import org.apache.nifi.flowfile.FlowFile;
 import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.*;
-import org.apache.nifi.processor.exception.ProcessException;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Entities;
@@ -214,7 +213,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     protected void undoEvents(String userId, List<Event> undoEvents, DistributedMapCacheClient cache, ProcessSession session)
-            throws ParseException, NoSuchAlgorithmException, IOException {
+            throws NoSuchAlgorithmException, IOException {
 
         //Are there any changes in the graph event?
         //Patch the graph event with the original event
@@ -243,7 +242,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                                             .getSerializer())
                                     .deserializeObject(new String(cacheValue, StandardCharsets.UTF_8), Event.class);
                     if (eventPatchVal == null) {
-                        throw new NoSuchAlgorithmException();
+                        throw new NoSuchElementException();
                     }
 
                     //We don't want to override the body context
@@ -297,7 +296,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             }
         }
     }
-
 
     @OnScheduled
     public void onScheduled(final ProcessContext context) {
