@@ -72,11 +72,27 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(content);
 
-        //If event is created, put the response in the succes flow file
+        //If event is created, put the response in the success flow file
         FlowFile succesFlowFile = session.create();
         succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
         session.write(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
         session.transfer(succesFlowFile, REL_SUCCESS);
+    }
+
+    protected void routeToError(final ProcessSession session, Object content) {
+        // Attributes for success and retry flow files
+        final Map<String, String> attributes = new Hashtable<>();
+        attributes.put("Content-Type", "application/json; charset=utf-8");
+        attributes.put("mime.type", "application/json");
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(content);
+
+        //If an error occurred put the error in flow file and route to failure
+        FlowFile errorFlowFile = session.create();
+        errorFlowFile = session.putAllAttributes(errorFlowFile, attributes);
+        session.write(errorFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+        session.transfer(errorFlowFile, REL_FAILURE);
     }
 
     protected void routeToFailure(FlowFile requestFlowFile, final ComponentLog logger,
@@ -110,11 +126,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         }
         sb.append(evt.subject);
         if (evt.showAs != null) sb.append(evt.showAs.name());
-        if (evt.location != null) sb.append(evt.location.displayName);
-        else if (evt.locations != null) {
-            String joinedLocations = evt.locations.stream().map((loc) -> {
-                return loc.displayName;
-            }).collect(Collectors.joining("; "));
+        if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty()) sb.append(evt.location.displayName);
+        else if (evt.locations != null && evt.locations.size() > 0) {
+            String joinedLocations = evt.locations.stream().map((loc) -> loc.displayName).collect(Collectors.joining("; "));
             sb.append(joinedLocations);
         }
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
@@ -183,11 +197,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         //Update the cache with the changed event
         for (Event evt : eventsSource) {
             try {
-                //Sanitize body content
-                if (evt.body != null && evt.body.content != null) {
-                    evt.body.contentType = BodyType.HTML;
-                    evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
-                }
                 byte[] hashedEvt = createHashedEvent(evt);
                 if (evt.transactionId == null) {
                     throw new IllegalArgumentException("TransactionId can't be empty");
@@ -195,6 +204,11 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 byte[] hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
 
                 if (hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) {
+                    //Sanitize body content
+                    if (evt.body != null && evt.body.content != null) {
+                        evt.body.contentType = BodyType.HTML;
+                        evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
+                    }
                     final Event eventToPatch = eventsGraph.stream()
                             .filter(event -> event.transactionId != null)
                             .filter(event -> event.transactionId.equals(evt.transactionId))

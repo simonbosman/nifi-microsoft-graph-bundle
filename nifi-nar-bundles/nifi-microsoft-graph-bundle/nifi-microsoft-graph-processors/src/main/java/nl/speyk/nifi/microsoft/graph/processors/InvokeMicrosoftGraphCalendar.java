@@ -162,6 +162,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
 
                         session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
                         session.transfer(retryFLowFile, REL_RETRY);
+                    } else if (batchResponseStep.status == HttpResponseCode.HTTP_CLIENT_ERROR) {
+                        //In case of an existing transactionId we want to route to failure and continue
+                        routeToError(session, batchResponseStep.body);
                     } else {
                         //This will throw a GraphServiceException or return Event
                         batchResponseStep.getDeserializedBody(Event.class);
@@ -207,6 +210,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             eventsJson = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             inputStream.close();
 
+            //Source set is empty, we don't want to
+            //set all the events on tentative, so stop with an error
+            if ("[{}]".equals(eventsJson.replaceAll(" ", ""))) {
+                throw new ProcessException("The source dataset is empty.");
+            }
+
             JsonElement jsonElement = JsonParser.parseString(eventsJson);
 
             // Make sure we always have an array of events.
@@ -217,12 +226,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             } else {
                 logger.error("Not valid JSON or empty.");
                 events = new Event[]{};
-            }
-
-            //Source set is empty, we don't want to
-            //set all the events on tentative, so stop with an error
-            if (events == null || events.length == 0) {
-                throw new ProcessException("The source dataset is empty.");
             }
 
             final List<Event> eventsSource = Arrays.asList(events);
