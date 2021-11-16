@@ -8,6 +8,7 @@ import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.requests.EventCollectionPage;
 import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.serializer.ISerializer;
 import nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
@@ -42,6 +43,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
@@ -111,7 +113,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         }
     }
 
-    private byte[] createHashedEvent(Event evt, @NotNull Boolean isGraphEvent) throws NoSuchAlgorithmException {
+    protected String eventToString(Event evt, @NotNull Boolean isGraphEvent) {
         StringBuilder sb = new StringBuilder();
         //A graph event has a different datetime format, hence we convert it.
         if (isGraphEvent) {
@@ -131,11 +133,15 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             String joinedLocations = evt.locations.stream().map((loc) -> loc.displayName).collect(Collectors.joining("; "));
             sb.append(joinedLocations);
         }
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        return messageDigest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
+        return sb.toString();
     }
 
-    protected byte[] createHashedEvent(Event evt) throws NoSuchAlgorithmException, ParseException {
+    private byte[] createHashedEvent(Event evt, @NotNull Boolean isGraphEvent) throws NoSuchAlgorithmException {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        return messageDigest.digest(eventToString(evt, isGraphEvent).getBytes(StandardCharsets.UTF_8));
+    }
+
+    protected byte[] createHashedEvent(Event evt) throws NoSuchAlgorithmException {
         return createHashedEvent(evt, false);
     }
 
@@ -189,6 +195,29 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         return eventsSource.stream().filter(event -> difference.contains(event.transactionId)).collect(Collectors.toList());
     }
 
+    protected void putEventMapCache(Event evt, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException{
+        final Consumer<String> logError = (transactionId) -> {
+            getLogger().error("Could not put hashed/full event: %s in the distributed map cache.", transactionId);
+        };
+
+        byte[] hashedEvt = createHashedEvent(evt);
+        cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
+
+        final ISerializer serializer = Objects.requireNonNull(msGraphClientAtomicRef.get()).getSerializer();
+        if (serializer == null) {
+            logError.accept(evt.transactionId);
+            return;
+        }
+
+        final String cacheValue = serializer.serializeObject(evt);
+        if (cacheValue == null) {
+            logError.accept(evt.transactionId);
+            return;
+        }
+
+        cache.put(PARTITION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer, valueSerializer);
+    }
+
     protected void patchEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
             throws ParseException, NoSuchAlgorithmException, IOException {
 
@@ -218,6 +247,14 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             .events(Objects.requireNonNull(eventToPatch.id))
                             .buildRequest()
                             .patch(evt));
+                    getLogger().info("Event for user {} with transactionId {} has been updated. " +
+                                    "Event Source: {}; Event Graph: {}",
+                            userId,
+                            evt.transactionId,
+                            eventToString(evt, false),
+                            eventToString(eventToPatch, true));
+                    //update the distributed map cache
+                    putEventMapCache(evt, cache);
                 }
             } catch (NoSuchElementException e) {
                 getLogger().error(String.format("Source event with transactionId %s couldn't be patched. " +
@@ -236,6 +273,11 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         for (Event evt : undoEvents) {
             //Event not managed by DIS, so continue
             if (evt.transactionId == null) continue;
+
+            //We don't care about tentative events
+            assert evt.showAs != null;
+            if (evt.showAs.name().equals("TENTATIVE")) continue;;
+
             try {
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
                 //Graph event isn't an event managed by DIS, so skip
@@ -268,6 +310,14 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             .buildRequest()
                             .patch(eventPatchVal);
                     routeToSuccess(session, content);
+                    getLogger().info("Event for user {} with transactionId {} has been undone. " +
+                                    "Event Source: {}; Event Graph: {}",
+                            userId,
+                            evt.transactionId,
+                            eventToString(eventPatchVal, false),
+                            eventToString(evt, true));
+                    //update the distributed map cache
+                    putEventMapCache(eventPatchVal, cache);
                 }
             } catch (NoSuchElementException e) {
                 String unknown = "unknown";
@@ -279,7 +329,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     protected void deleteEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
-            throws ParseException, NoSuchAlgorithmException, IOException {
+            throws NoSuchAlgorithmException, IOException {
         //Is the set of events greater in the graph than in source?
         //Make event in the graph tentative
         List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
@@ -288,8 +338,11 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
                 continue;
             //Is the event already tentative?
-            if (Objects.equals(evt.showAs, FreeBusyStatus.TENTATIVE))
+            assert evt.showAs != null;
+            if (Objects.equals(evt.showAs.name(), "TENTATIVE"))
                 continue;
+
+            //Create the event for patching
             Event eventPatchVal = new Event();
             eventPatchVal.start = evt.start;
             eventPatchVal.end = evt.end;
@@ -305,6 +358,13 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                         .events(Objects.requireNonNull(evt.id))
                         .buildRequest()
                         .patch(eventPatchVal));
+
+                getLogger().info("Event for user {} with transactionId {} has been deleted. Event Source: {}; Event Graph: {}",
+                        userId, evt.transactionId, eventToString(evt, false), eventToString(eventPatchVal, false));
+
+                //update the distributed map cache
+                putEventMapCache(eventPatchVal, cache);
+
             } catch (NoSuchElementException e) {
                 getLogger().error(String.format("Graph event with transactionId %s couldn't be patched to state tentative.", evt.transactionId));
             }

@@ -73,29 +73,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
     //Put a hash of the events in a distributed map cache, so we can detect changes
     //We also put the original flow of an appointment in the map cache
     private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException, ParseException {
-
-        final Consumer<String> logError = (transactionId) -> {
-            getLogger().error("Could not put full event: %s in the distributed map cache.", transactionId);
-        };
-
-        for (Event evt : events) {
-            byte[] hashedEvt = createHashedEvent(evt);
-            cache.put(evt.transactionId, hashedEvt, keySerializer, valueSerializer);
-
-            final ISerializer serializer = Objects.requireNonNull(msGraphClientAtomicRef.get()).getSerializer();
-            if (serializer == null) {
-                logError.accept(evt.transactionId);
-                continue;
-            }
-
-            final String cacheValue = serializer.serializeObject(evt);
-            if (cacheValue == null) {
-                logError.accept(evt.transactionId);
-                continue;
-            }
-
-            cache.put(PARTITION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer, valueSerializer);
-        }
+       for (Event evt : events) {
+           putEventMapCache(evt, cache);
+       }
     }
 
     private void putBatchGraphEvents(final ProcessContext context,
@@ -126,6 +106,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                     event.body.contentType = BodyType.HTML;
                     event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
                 }
+                //Put the event in a hashtable for future reference
                 idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get()
                         .users(userId)
                         .events()
@@ -142,6 +123,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                     if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
                         //If event is created, put the response in the success flow file
                         routeToSuccess(session, batchResponseStep.body);
+                        Event createdEvent = batchResponseStep.getDeserializedBody(Event.class);
+                        getLogger().info("Event for user {} with transactionId {} has been created. Event: {}",
+                                createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
                     } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
                         //In case of the following error codes (429, 503, 504)
                         //put the event from the hashtable in a flow file and route to retry
@@ -213,7 +197,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             //Source set is empty, we don't want to
             //set all the events on tentative, so stop with an error
             if ("[{}]".equals(eventsJson.replaceAll(" ", ""))) {
-                throw new ProcessException("The source dataset is empty.");
+                logger.error("The source dataset is empty.");
+                requestFlowFile = session.penalize(requestFlowFile);
+                session.transfer(requestFlowFile, REL_FAILURE);
+                return;
             }
 
             JsonElement jsonElement = JsonParser.parseString(eventsJson);
@@ -237,13 +224,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             //Put the events in batches in the Microsoft Graph
             putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile);
 
+            //Put the events in a map cache
+            putEventsMapCache(eventsSource, cache);
+
             //Are there any events that have changed?
             //If so patch them in the graph
             //Also undo changed graph events and delete events
             patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate);
-
-            //Put the events in a map cache
-            putEventsMapCache(eventsSource, cache);
 
             // The original flow file hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
