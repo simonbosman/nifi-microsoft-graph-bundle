@@ -61,8 +61,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                                   boolean isUpdate)
             throws IOException, NoSuchAlgorithmException, ParseException {
 
-        patchEvents(userId, eventsSource, eventsGraph, cache, session);
         undoEvents(userId, eventsGraph, cache, session);
+        patchEvents(userId, eventsSource, eventsGraph, cache, session);
 
         //If we are updating, we stop here
         if (!isUpdate) {
@@ -70,20 +70,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
     }
 
-    //Put a hash of the events in a distributed map cache, so we can detect changes
-    //We also put the original flow of an appointment in the map cache
-    private void putEventsMapCache(List<Event> events, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException, ParseException {
-       for (Event evt : events) {
-           putEventMapCache(evt, cache);
-       }
-    }
-
     private void putBatchGraphEvents(final ProcessContext context,
                                      final ProcessSession session,
                                      List<Event> events, String userId,
                                      boolean isUpdate,
-                                     final FlowFile requestFlowFile)
-            throws ClientException {
+                                     final FlowFile requestFlowFile,
+                                     final DistributedMapCacheClient cache)
+            throws ClientException, IOException, NoSuchAlgorithmException {
         // Attributes for success and retry flow files
         final Map<String, String> attributes = new Hashtable<>();
         attributes.put("Content-Type", "application/json; charset=utf-8");
@@ -126,6 +119,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                         Event createdEvent = batchResponseStep.getDeserializedBody(Event.class);
                         getLogger().info("Event for user {} with transactionId {} has been created. Event: {}",
                                 createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
+                        //Put the event in the distributed map cache
+                        putEventMapCache(idEvent.get(batchResponseStep.id), cache);
+
                     } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
                         //In case of the following error codes (429, 503, 504)
                         //put the event from the hashtable in a flow file and route to retry
@@ -222,10 +218,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
-            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile);
-
-            //Put the events in a map cache
-            putEventsMapCache(eventsSource, cache);
+            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
 
             //Are there any events that have changed?
             //If so patch them in the graph

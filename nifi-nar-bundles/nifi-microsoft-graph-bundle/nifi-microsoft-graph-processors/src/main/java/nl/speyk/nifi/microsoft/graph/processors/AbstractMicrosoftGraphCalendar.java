@@ -122,11 +122,13 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(dtStart.format(dtFormatter));
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
+            assert evt.subject != null;
+            sb.append(evt.subject.replace(" [!]", ""));
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
+            sb.append(evt.subject);
         }
-        sb.append(evt.subject);
         if (evt.showAs != null) sb.append(evt.showAs.name());
         if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty()) sb.append(evt.location.displayName);
         else if (evt.locations != null && evt.locations.size() > 0) {
@@ -237,11 +239,16 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                     if (evt.body != null && evt.body.content != null) {
                         evt.body.contentType = BodyType.HTML;
                         evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
+                        //Mark the event there have been a change
+                        if (evt.body.content.length() > 0) {
+                            evt.subject += " [!]";
+                        }
                     }
                     final Event eventToPatch = eventsGraph.stream()
                             .filter(event -> event.transactionId != null)
                             .filter(event -> event.transactionId.equals(evt.transactionId))
                             .findAny().get();
+                    //TODO: When a team link has been created, preserve this link
                     routeToSuccess(session, msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(Objects.requireNonNull(eventToPatch.id))
@@ -253,7 +260,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             evt.transactionId,
                             eventToString(evt, false),
                             eventToString(eventToPatch, true));
-                    //update the distributed map cache
+                    //remove change marker and update the distributed map cache
+                    assert evt.subject != null;
+                    evt.subject = evt.subject.replace(" [!]", "");
                     putEventMapCache(evt, cache);
                 }
             } catch (NoSuchElementException e) {
