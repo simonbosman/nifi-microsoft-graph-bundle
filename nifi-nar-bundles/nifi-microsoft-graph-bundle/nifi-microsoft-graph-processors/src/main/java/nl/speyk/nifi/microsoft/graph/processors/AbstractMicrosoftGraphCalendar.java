@@ -123,6 +123,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
             assert evt.subject != null;
+            //Remove changed marker
             sb.append(evt.subject.replace(" [!]", ""));
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
@@ -132,7 +133,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         if (evt.showAs != null) sb.append(evt.showAs.name());
         if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty()) sb.append(evt.location.displayName);
         else if (evt.locations != null && evt.locations.size() > 0) {
-            String joinedLocations = evt.locations.stream().map((loc) -> loc.displayName).collect(Collectors.joining("; "));
+            String joinedLocations = evt.locations.stream().map((loc) -> loc.displayName).sorted().collect(Collectors.joining("; "));
             sb.append(joinedLocations);
         }
         return sb.toString();
@@ -220,8 +221,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         cache.put(PARTITION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer, valueSerializer);
     }
 
-    protected void patchEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
-            throws ParseException, NoSuchAlgorithmException, IOException {
+    protected void patchEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph,
+                               DistributedMapCacheClient cache, ProcessSession session, Rooster rs)
+            throws NoSuchAlgorithmException, IOException {
 
         //Are there any changes in the source event?
         //Patch the graph with the changed event
@@ -239,8 +241,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                     if (evt.body != null && evt.body.content != null) {
                         evt.body.contentType = BodyType.HTML;
                         evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
-                        //Mark the event there have been a change
-                        if (evt.body.content.length() > 0) {
+                        //Mark the event if there has been a change
+                        if (rs == Rooster.ZERMELO && evt.body.content.length() > 0) {
                             evt.subject += " [!]";
                         }
                     }
@@ -277,7 +279,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
         //Are there any changes in the graph event?
         //Patch the graph event with the original event
-        //from the list of source events
+        //from the source events in the map cache
         //Effectually restoring manual changes to the graph
         for (Event evt : undoEvents) {
             //Event not managed by DIS, so continue
@@ -398,6 +400,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         this.descriptors = Collections.unmodifiableList(Arrays.asList(
                 GRAPH_CONTROLLER_ID,
                 GRAPH_DISTRIBUTED_MAPCACHE,
+                GRAPH_RS,
                 GRAPH_USER_ID,
                 GRAPH_IS_UPDATE));
     }

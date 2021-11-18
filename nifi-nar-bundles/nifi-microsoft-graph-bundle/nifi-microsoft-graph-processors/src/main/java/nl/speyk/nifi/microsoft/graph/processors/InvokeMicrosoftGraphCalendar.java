@@ -28,7 +28,6 @@ import com.microsoft.graph.http.HttpMethod;
 import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.BodyType;
 import com.microsoft.graph.models.Event;
-import com.microsoft.graph.serializer.ISerializer;
 import org.apache.commons.io.IOUtils;
 import org.apache.nifi.distributed.cache.client.DistributedMapCacheClient;
 import org.apache.nifi.flowfile.FlowFile;
@@ -45,7 +44,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.*;
-import java.util.function.Consumer;
 
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils.*;
@@ -58,11 +56,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                                   List<Event> eventsGraph,
                                   DistributedMapCacheClient cache,
                                   ProcessSession session,
-                                  boolean isUpdate)
+                                  boolean isUpdate,
+                                  Rooster rs)
             throws IOException, NoSuchAlgorithmException, ParseException {
 
         undoEvents(userId, eventsGraph, cache, session);
-        patchEvents(userId, eventsSource, eventsGraph, cache, session);
+        patchEvents(userId, eventsSource, eventsGraph, cache, session, rs);
 
         //If we are updating, we stop here
         if (!isUpdate) {
@@ -94,6 +93,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
 
             // Four requests per batch
             for (Event event : eventList) {
+                assert event.locations != null;
+                //Sort the locations
+                event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
                 //Sanitize body content
                 if (event.body != null && event.body.content != null) {
                     event.body.contentType = BodyType.HTML;
@@ -156,6 +158,21 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
     }
 
+    private Rooster getRooster(String roosterSystem) {
+        roosterSystem = roosterSystem.toLowerCase();
+        final Rooster rs;
+        if ("magister".equals(roosterSystem)) {
+            rs = Rooster.MAGISTER;
+        }
+        else if ("zermelo".equals(roosterSystem)) {
+            rs = Rooster.ZERMELO;
+        }
+        else {
+            rs = Rooster.UNKNOWN;
+        }
+        return rs;
+    }
+
     @Override
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
 
@@ -164,8 +181,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         if (requestFlowFile == null) {
             return;
         }
-
         final ComponentLog logger = getLogger();
+        final Rooster rs = getRooster(context.getProperty(GRAPH_RS).getValue());
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile).getValue();
         final boolean isUpdate = Boolean.parseBoolean(context.getProperty(GRAPH_IS_UPDATE).evaluateAttributeExpressions(requestFlowFile).getValue());
 
@@ -223,7 +240,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             //Are there any events that have changed?
             //If so patch them in the graph
             //Also undo changed graph events and delete events
-            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate);
+            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate, rs);
 
             // The original flow file hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);

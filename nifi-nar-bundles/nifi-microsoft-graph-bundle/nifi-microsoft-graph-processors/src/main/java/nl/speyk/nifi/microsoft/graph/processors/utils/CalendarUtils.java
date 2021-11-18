@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 public final class CalendarUtils {
 
     // Properties
-    public final static PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor GRAPH_CONTROLLER_ID = new PropertyDescriptor.Builder()
             .name("mg-cs-auth-controller-id")
             .displayName("Graph Controller Service")
             .description("Graph Controller Service used for creating a connection to the Graph")
@@ -26,12 +26,21 @@ public final class CalendarUtils {
             .identifiesControllerService(MicrosoftGraphCredentialService.class)
             .build();
 
-    public final static PropertyDescriptor GRAPH_DISTRIBUTED_MAPCACHE = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor GRAPH_DISTRIBUTED_MAPCACHE = new PropertyDescriptor.Builder()
             .name("mg-cs-mapcache-id")
             .displayName("Distributed mapcache client")
             .description("Distributed mapcache client used for detecting changes")
             .required(true)
             .identifiesControllerService(DistributedMapCacheClient.class)
+            .build();
+
+    public static final PropertyDescriptor GRAPH_RS = new PropertyDescriptor.Builder()
+            .name("ms-cs-rs")
+            .displayName("Rooster System")
+            .description("The name of the rooster system")
+            .allowableValues("Magister", "Zermelo")
+            .defaultValue("Magister")
+            .required(true)
             .build();
 
     public static final PropertyDescriptor GRAPH_USER_ID = new PropertyDescriptor.Builder()
@@ -78,6 +87,12 @@ public final class CalendarUtils {
 
     private CalendarUtils() {
         //Do not instantiate
+    }
+
+    public enum Rooster {
+        MAGISTER,
+        ZERMELO,
+        UNKNOWN;
     }
 
     //Serializers needed for the distributed map cache
