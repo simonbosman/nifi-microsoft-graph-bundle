@@ -230,6 +230,10 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         //Update the cache with the changed event
         for (Event evt : eventsSource) {
             try {
+                //Sort the locations
+                assert evt.locations != null;
+                evt.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+
                 byte[] hashedEvt = createHashedEvent(evt);
                 if (evt.transactionId == null) {
                     throw new IllegalArgumentException("TransactionId can't be empty");
