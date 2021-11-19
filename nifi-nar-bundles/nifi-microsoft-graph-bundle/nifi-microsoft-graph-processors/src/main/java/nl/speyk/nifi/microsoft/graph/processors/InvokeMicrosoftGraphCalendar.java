@@ -94,18 +94,18 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
 
             // Four requests per batch
             for (Event event : eventList) {
-                assert event.locations != null;
                 //Sort the locations
-                event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
-
+               if (event.locations != null) {
+                   event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+               }
                 //Sanitize body content
-                if (event.body != null && event.body.content != null) {
-                    event.body.contentType = BodyType.HTML;
-                    event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
+                if (event.body != null && event.body.content != null && event.body.content.length() > 0) {
                     //Mark the event if there has been a change
                     if (rs == Rooster.ZERMELO) {
                         event.subject += " [!]";
                     }
+                    event.body.contentType = BodyType.HTML;
+                    event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
                 }
                 //Put the event in a hashtable for future reference
                 idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get()

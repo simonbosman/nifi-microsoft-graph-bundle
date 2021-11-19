@@ -121,7 +121,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(dtStart.format(dtFormatter));
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
-            assert evt.subject != null;
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
@@ -230,10 +229,17 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 //Sort the locations
                 if (evt.locations != null) {
                     evt.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+
+                }
+
+                //Mark the event if there has notification
+                if (rs == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
+                    evt.subject += " [!]";
                 }
 
                 //Compare hashes
                 byte[] hashedEvt = createHashedEvent(evt);
+
                 if (evt.transactionId == null) {
                     throw new IllegalArgumentException("TransactionId can't be empty");
                 }
@@ -244,10 +250,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                     if (evt.body != null && evt.body.content != null) {
                         evt.body.contentType = BodyType.HTML;
                         evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
-                        //Mark the event if there has notification
-                        if (rs == Rooster.ZERMELO) {
-                            evt.subject += " [!]";
-                        }
                     }
                     final Event eventToPatch = eventsGraph.stream()
                             .filter(event -> event.transactionId != null)
