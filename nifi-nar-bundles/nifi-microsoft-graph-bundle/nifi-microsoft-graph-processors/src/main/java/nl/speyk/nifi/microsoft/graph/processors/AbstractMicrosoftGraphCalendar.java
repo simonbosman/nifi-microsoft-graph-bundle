@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -123,13 +122,11 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
             assert evt.subject != null;
-            //Remove changed marker
-            sb.append(evt.subject.replace(" [!]", ""));
         } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
-            sb.append(evt.subject);
         }
+        sb.append(evt.subject);
         if (evt.showAs != null) sb.append(evt.showAs.name());
         if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty()) sb.append(evt.location.displayName);
         else if (evt.locations != null && evt.locations.size() > 0) {
@@ -231,9 +228,11 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         for (Event evt : eventsSource) {
             try {
                 //Sort the locations
-                assert evt.locations != null;
-                evt.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+                if (evt.locations != null) {
+                    evt.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+                }
 
+                //Compare hashes
                 byte[] hashedEvt = createHashedEvent(evt);
                 if (evt.transactionId == null) {
                     throw new IllegalArgumentException("TransactionId can't be empty");
@@ -245,8 +244,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                     if (evt.body != null && evt.body.content != null) {
                         evt.body.contentType = BodyType.HTML;
                         evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
-                        //Mark the event if there has been a change
-                        if (rs == Rooster.ZERMELO && evt.body.content.length() > 0) {
+                        //Mark the event if there has notification
+                        if (rs == Rooster.ZERMELO) {
                             evt.subject += " [!]";
                         }
                     }
@@ -266,9 +265,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             evt.transactionId,
                             eventToString(evt, false),
                             eventToString(eventToPatch, true));
-                    //remove change marker and update the distributed map cache
-                    assert evt.subject != null;
-                    evt.subject = evt.subject.replace(" [!]", "");
                     putEventMapCache(evt, cache);
                 }
             } catch (NoSuchElementException e) {

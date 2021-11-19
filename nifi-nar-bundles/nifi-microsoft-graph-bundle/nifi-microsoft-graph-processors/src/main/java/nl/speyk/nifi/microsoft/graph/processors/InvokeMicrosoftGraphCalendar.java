@@ -74,7 +74,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                                      List<Event> events, String userId,
                                      boolean isUpdate,
                                      final FlowFile requestFlowFile,
-                                     final DistributedMapCacheClient cache)
+                                     final DistributedMapCacheClient cache,
+                                     Rooster rs)
             throws ClientException, IOException, NoSuchAlgorithmException {
         // Attributes for success and retry flow files
         final Map<String, String> attributes = new Hashtable<>();
@@ -96,10 +97,15 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                 assert event.locations != null;
                 //Sort the locations
                 event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+
                 //Sanitize body content
                 if (event.body != null && event.body.content != null) {
                     event.body.contentType = BodyType.HTML;
                     event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
+                    //Mark the event if there has been a change
+                    if (rs == Rooster.ZERMELO) {
+                        event.subject += " [!]";
+                    }
                 }
                 //Put the event in a hashtable for future reference
                 idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get()
@@ -235,7 +241,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
-            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
+            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache, rs);
 
             //Are there any events that have changed?
             //If so patch them in the graph
