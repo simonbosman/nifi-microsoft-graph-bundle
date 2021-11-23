@@ -232,7 +232,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
                 }
 
-                //Mark the event if there has notification
+                //Mark the event if there has been a notification
                 if (rs == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
                     evt.subject += " [!]";
                 }

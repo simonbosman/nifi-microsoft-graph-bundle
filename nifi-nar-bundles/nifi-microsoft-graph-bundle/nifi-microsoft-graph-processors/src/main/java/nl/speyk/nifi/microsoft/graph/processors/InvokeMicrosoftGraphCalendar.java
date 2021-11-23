@@ -165,19 +165,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
     }
 
     private Rooster getRooster(String roosterSystem) {
-        roosterSystem = roosterSystem.toLowerCase();
-        final Rooster rs;
-        if ("magister".equals(roosterSystem)) {
-            rs = Rooster.MAGISTER;
-        }
-        else if ("zermelo".equals(roosterSystem)) {
-            rs = Rooster.ZERMELO;
-        }
-        else {
-            rs = Rooster.UNKNOWN;
-        }
-        return rs;
-    }
+        if ("magister".equalsIgnoreCase(roosterSystem))
+            return Rooster.MAGISTER;
+        else if ("zermelo".equalsIgnoreCase(roosterSystem))
+            return Rooster.ZERMELO;
+         else
+            return Rooster.UNKNOWN;
+       }
 
     @Override
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
