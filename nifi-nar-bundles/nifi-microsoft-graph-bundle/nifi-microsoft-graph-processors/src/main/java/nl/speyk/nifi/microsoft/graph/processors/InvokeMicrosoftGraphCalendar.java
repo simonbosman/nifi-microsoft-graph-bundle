@@ -28,6 +28,7 @@ import com.microsoft.graph.http.HttpMethod;
 import com.microsoft.graph.http.HttpResponseCode;
 import com.microsoft.graph.models.BodyType;
 import com.microsoft.graph.models.Event;
+import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import org.apache.commons.io.IOUtils;
 import org.apache.nifi.distributed.cache.client.DistributedMapCacheClient;
 import org.apache.nifi.flowfile.FlowFile;
@@ -187,10 +188,10 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         final boolean isUpdate = Boolean.parseBoolean(context.getProperty(GRAPH_IS_UPDATE).evaluateAttributeExpressions(requestFlowFile).getValue());
 
         if (msGraphClientAtomicRef.get() == null) {
-            logger.error("Microsoft Graph Client is not available.");
-            requestFlowFile = session.penalize(requestFlowFile);
-            session.transfer(requestFlowFile, REL_FAILURE);
-            return;
+            logger.info("Microsoft Graph Client is not yet available.");
+            MicrosoftGraphCredentialService microsoftGraphCredentialService = context.getProperty(GRAPH_CONTROLLER_ID)
+                    .asControllerService(MicrosoftGraphCredentialService.class);
+            msGraphClientAtomicRef.set(microsoftGraphCredentialService.getGraphClient());
         }
 
         // the cache client used to interact with the distributed cache

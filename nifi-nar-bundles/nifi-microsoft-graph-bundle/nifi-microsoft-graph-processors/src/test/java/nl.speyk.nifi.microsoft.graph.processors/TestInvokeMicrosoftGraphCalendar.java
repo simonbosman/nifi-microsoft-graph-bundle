@@ -19,14 +19,20 @@ package nl.speyk.nifi.microsoft.graph.processors;
 import nl.speyk.nifi.microsoft.graph.services.MicrosoftGraphCredentialControllerService;
 import org.apache.nifi.distributed.cache.client.DistributedMapCacheClientService;
 import org.apache.nifi.reporting.InitializationException;
+import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 import static nl.speyk.nifi.microsoft.graph.services.MicrosoftGraphCredentialControllerService.*;
 import static org.apache.nifi.distributed.cache.client.DistributedMapCacheClientService.*;
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +41,13 @@ public class TestInvokeMicrosoftGraphCalendar {
 
     private TestRunner runner;
 
+    private static final Logger LOGGER;
+
+    static {
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "ERROR");
+        System.setProperty("org.slf4j.simpleLogger.showDateTime", "true");
+        LOGGER = LoggerFactory.getLogger(InvokeMicrosoftGraphCalendar.class);
+    }
     @Before
     public void setUp() throws InitializationException {
         runner = TestRunners.newTestRunner(InvokeMicrosoftGraphCalendar.class);
@@ -68,5 +81,17 @@ public class TestInvokeMicrosoftGraphCalendar {
     @Test
     public void testValid() {
         runner.assertValid();
+    }
+
+    @Test
+    public void testEmptyValidJsonContent() {
+        runner.enqueue("[{}]");
+        runner.run();
+        runner.assertQueueEmpty();
+        List<MockFlowFile> results = runner.getFlowFilesForRelationship(REL_FAILURE);
+        assertEquals("Empty json content should trigger a failure", 1, results.size());
+        MockFlowFile result = results.get(0);
+        String resultValue = new String(runner.getContentAsByteArray(result));
+        LOGGER.info("Json content is empty:  " + resultValue);
     }
 }
