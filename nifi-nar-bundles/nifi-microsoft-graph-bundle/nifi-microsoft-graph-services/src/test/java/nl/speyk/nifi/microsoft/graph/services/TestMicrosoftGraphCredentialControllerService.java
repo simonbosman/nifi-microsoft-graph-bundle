@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.speyk.nifi.microsoft.graph.services.api;
+package nl.speyk.nifi.microsoft.graph.services;
 
 import nl.speyk.nifi.microsoft.graph.services.MicrosoftGraphCredentialControllerService;
+import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import org.apache.nifi.reporting.InitializationException;
 import org.apache.nifi.util.NoOpProcessor;
 import org.apache.nifi.util.TestRunner;
