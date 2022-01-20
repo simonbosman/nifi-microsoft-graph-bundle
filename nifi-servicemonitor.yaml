@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: nifi-metrics
+    app.kubernetes.io/name: nifi-metrics
+    app.kubernetes.io/part-of: kube-prometheus
+    app.kubernetes.io/version: 8.3.3
+    serviceMonitorSelector: nifi-metrics 
+  name: nifi-metrics
+  namespace: monitoring
+spec:
+  endpoints:
+  - interval: 15s
+    targetPort: 9092
+    path: /metrics
+  namespaceSelector:
+    matchNames:
+    - default
+  selector:
+    matchLabels:
+      app: "nifi"
