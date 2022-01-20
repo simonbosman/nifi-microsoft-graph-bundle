@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aks-grafana
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true" 
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3000
+  selector:
+    app.kubernetes.io/name: grafana
+  publishNotReadyAddresses: true
