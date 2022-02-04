@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: aks-alermanagers
+  name: aks-alertmanagers
   annotations:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
   namespace: monitoring
