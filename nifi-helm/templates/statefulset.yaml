@@ -118,6 +118,14 @@ spec:
       - name: server
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "0.5"
+        args:
+        - -cpus
+        - "2"
         command:
         - bash
         - -ce

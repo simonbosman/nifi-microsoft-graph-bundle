@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aks-alermanagers
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 9093
+  selector:
+    app.kubernetes.io/component: alert-router
+    app.kubernetes.io/instance: main
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus
+  publishNotReadyAddresses: true
