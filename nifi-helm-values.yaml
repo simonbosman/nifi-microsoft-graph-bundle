@@ -88,7 +88,7 @@ properties:
     nifi.web.http.network.interface.lo: lo
 
   ## Include aditional processors
-  # customLibPath: "/opt/configuration_resources/custom_lib"
+  customLibPath: "/opt/nifi/data/custom_lib"
 
 ## Include additional libraries in the Nifi containers by using the postStart handler
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/

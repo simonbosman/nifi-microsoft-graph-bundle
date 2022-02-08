@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 
 NIFI_HOME="/Users/simon/nifi/nifi-1.13.2/"
-PROJECT_HOME="//Users/simon/IdeaProjects/nifi/nifi-nar-bundles/nifi-microsoft-graph-bundle/"
+PROJECT_HOME="//Users/simon/SPEYK-DIS/nifi-nar-bundles/nifi-microsoft-graph-bundle/"
 NIFI_URL="http://localhost:7777/nifi-api/system-diagnostics"
 
 printf "Compiling..\n"
 
-res=$(mvn clean install -T5 | grep ERROR)
+res=$(mvn clean install -T5 -D skipTests | grep ERROR)
 
 if [ -n "$res" ]
 then

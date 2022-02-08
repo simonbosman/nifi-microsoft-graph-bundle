@@ -398,7 +398,12 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
     @Override
     protected void init(final ProcessorInitializationContext context) {
-        this.relationships = Set.of(REL_SUCCESS, REL_RETRY, REL_FAILURE, REL_ORIGINAL);
+        final Set<Relationship> _relationships = new HashSet<>();
+        _relationships.add(REL_SUCCESS);
+        _relationships.add(REL_FAILURE);
+        _relationships.add(REL_RETRY);
+        _relationships.add(REL_ORIGINAL);
+        this.relationships = Collections.unmodifiableSet(_relationships);
         this.descriptors = Collections.unmodifiableList(Arrays.asList(
                 GRAPH_CONTROLLER_ID,
                 GRAPH_DISTRIBUTED_MAPCACHE,
