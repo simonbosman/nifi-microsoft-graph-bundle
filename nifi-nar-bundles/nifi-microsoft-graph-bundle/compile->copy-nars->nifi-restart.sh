@@ -2,7 +2,7 @@
 
 NIFI_HOME="/Users/simon/nifi/nifi-1.13.2/"
 PROJECT_HOME="//Users/simon/SPEYK-DIS/nifi-nar-bundles/nifi-microsoft-graph-bundle/"
-NIFI_URL="http://localhost:7777/nifi-api/system-diagnostics"
+NIFI_URL="http://localhost:8080/nifi-api/system-diagnostics"
 
 printf "Compiling..\n"
 

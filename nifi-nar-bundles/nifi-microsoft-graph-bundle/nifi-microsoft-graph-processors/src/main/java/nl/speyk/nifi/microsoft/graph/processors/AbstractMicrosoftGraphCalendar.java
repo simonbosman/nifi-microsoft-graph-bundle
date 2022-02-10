@@ -409,7 +409,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 GRAPH_DISTRIBUTED_MAPCACHE,
                 GRAPH_RS,
                 GRAPH_USER_ID,
-                GRAPH_IS_UPDATE));
+                GRAPH_IS_UPDATE,
+                GRAPH_REBUILD_MAP_CACHE));
     }
 
     @Override

@@ -184,6 +184,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
         final ComponentLog logger = getLogger();
         final Rooster rs = getRooster(context.getProperty(GRAPH_RS).getValue());
+        final boolean rebuildMapCache = context.getProperty(GRAPH_REBUILD_MAP_CACHE).asBoolean();
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile).getValue();
         final boolean isUpdate = Boolean.parseBoolean(context.getProperty(GRAPH_IS_UPDATE).evaluateAttributeExpressions(requestFlowFile).getValue());
 
@@ -230,6 +231,14 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             }
 
             final List<Event> eventsSource = Arrays.asList(events);
+            //If chosen, rebuild the map cache and exit
+            if (rebuildMapCache) {
+                for (Event event: eventsSource) {
+                    putEventMapCache(event, cache);
+                }
+                session.transfer(requestFlowFile, REL_ORIGINAL);
+                return;
+            }
             final List<Event> eventsGraph = getGraphEvents(userId);
 
             //Only synchronize events that are not already in the graph

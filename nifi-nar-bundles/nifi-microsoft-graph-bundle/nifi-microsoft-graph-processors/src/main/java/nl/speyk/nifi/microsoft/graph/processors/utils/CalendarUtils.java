@@ -63,6 +63,15 @@ public final class CalendarUtils {
             .required(true)
             .build();
 
+    public static final PropertyDescriptor GRAPH_REBUILD_MAP_CACHE = new PropertyDescriptor.Builder()
+            .name("mg-cs-is-rebuild")
+            .displayName("Rebuild the map cache")
+            .description("Set to true for rebuilding the map cache, synchronization will not work")
+            .allowableValues("true", "false")
+            .defaultValue("false")
+            .required(true)
+            .build();
+
     // relationships
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
