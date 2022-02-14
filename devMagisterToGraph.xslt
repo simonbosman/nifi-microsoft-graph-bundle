@@ -4,13 +4,18 @@
         <appointments>
             <xsl:for-each select="Response/Table/Personeelsleden/Personeelslid">
                 <appointment>
+                    <xsl:choose>
+                        <xsl:when test="contains(Email_priv, '@')">
                             <organizer>
                                 <emailAddress>
                                     <address>
-                                        <xsl:value-of select="Email_priv"/>
+                                        <xsl:value-of
+                                                select="concat(substring-before(Email_priv, '@'), '@speykintegrations.onmicrosoft.com')"/>
                                     </address>
                                 </emailAddress>
                             </organizer>
+                        </xsl:when>
+                    </xsl:choose>
                     <subject>
                         <xsl:value-of select="Subject"/>
                     </subject>
