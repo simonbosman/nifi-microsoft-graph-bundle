@@ -233,6 +233,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsSource = Arrays.asList(events);
             //If chosen, rebuild the map cache and exit
             if (rebuildMapCache) {
+                logger.info("Rebuilding mapcache and stop.");
                 for (Event event: eventsSource) {
                     putEventMapCache(event, cache);
                 }
