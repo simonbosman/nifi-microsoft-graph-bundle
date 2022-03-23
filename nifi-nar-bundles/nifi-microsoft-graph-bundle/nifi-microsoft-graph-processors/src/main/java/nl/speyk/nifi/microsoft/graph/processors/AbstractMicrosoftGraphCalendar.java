@@ -60,6 +60,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     protected final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
     protected final Serializer<String> keySerializer = new CalendarUtils.StringSerializer();
     protected final Serializer<byte[]> valueSerializer = new CalendarUtils.CacheValueSerializer();
+    protected Rooster rooster = Rooster.UNKNOWN;
     private final Deserializer<byte[]> valueDeserializer = new CalendarUtils.CacheValueDeserializer();
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
@@ -121,7 +122,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(dtStart.format(dtFormatter));
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
-        } else {
+        }
+        else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
         }
@@ -218,7 +220,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     protected void patchEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph,
-                               DistributedMapCacheClient cache, ProcessSession session, Rooster rs)
+                               DistributedMapCacheClient cache, ProcessSession session)
             throws NoSuchAlgorithmException, IOException {
 
         //Are there any changes in the source event?
@@ -226,14 +228,21 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         //Update the cache with the changed event
         for (Event evt : eventsSource) {
             try {
+                //Adjust timezones for Zermelo
+                if (rooster == Rooster.ZERMELO) {
+                    DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.of("Europe/Berlin"));
+                    ZonedDateTime dtStart = LocalDateTime.parse(evt.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).atZone(ZoneId.of("UTC"));
+                    evt.start.dateTime = dtStart.format(dtFormatter);
+                    ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).atZone(ZoneId.of("UTC"));
+                    evt.end.dateTime = dtEnd.format(dtFormatter);
+                }
                 //Sort the locations
                 if (evt.locations != null) {
                     evt.locations.sort(Comparator.comparing((loc) -> loc.displayName));
-
                 }
 
                 //Mark the event if there has been a notification
-                if (rs == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
+                if (rooster == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
                     evt.subject += " [!]";
                 }
 

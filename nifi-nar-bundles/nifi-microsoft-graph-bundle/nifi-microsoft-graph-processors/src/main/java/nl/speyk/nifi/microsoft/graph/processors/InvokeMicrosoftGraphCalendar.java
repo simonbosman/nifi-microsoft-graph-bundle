@@ -44,6 +44,10 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
@@ -52,17 +56,10 @@ import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils.*;
 public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar {
 
     //Patch events for user if event has changed
-    private void patchGraphEvents(String userId,
-                                  List<Event> eventsSource,
-                                  List<Event> eventsGraph,
-                                  DistributedMapCacheClient cache,
-                                  ProcessSession session,
-                                  boolean isUpdate,
-                                  Rooster rs)
-            throws IOException, NoSuchAlgorithmException, ParseException {
+    private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session, boolean isUpdate) throws IOException, NoSuchAlgorithmException, ParseException {
 
         undoEvents(userId, eventsGraph, cache, session);
-        patchEvents(userId, eventsSource, eventsGraph, cache, session, rs);
+        patchEvents(userId, eventsSource, eventsGraph, cache, session);
 
         //If we are updating, we stop here
         if (!isUpdate) {
@@ -70,14 +67,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
     }
 
-    private void putBatchGraphEvents(final ProcessContext context,
-                                     final ProcessSession session,
-                                     List<Event> events, String userId,
-                                     boolean isUpdate,
-                                     final FlowFile requestFlowFile,
-                                     final DistributedMapCacheClient cache,
-                                     Rooster rs)
-            throws ClientException, IOException, NoSuchAlgorithmException {
+    private void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, boolean isUpdate, final FlowFile requestFlowFile, final DistributedMapCacheClient cache) throws ClientException, IOException, NoSuchAlgorithmException {
         // Attributes for success and retry flow files
         final Map<String, String> attributes = new Hashtable<>();
         attributes.put("Content-Type", "application/json; charset=utf-8");
@@ -95,30 +85,32 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
 
             // Four requests per batch
             for (Event event : eventList) {
+                //Adjust timezones for Zermelo
+                if (rooster == Rooster.ZERMELO) {
+                    DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.of("Europe/Berlin"));
+                    ZonedDateTime dtStart = LocalDateTime.parse(event.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).atZone(ZoneId.of("UTC"));
+                    event.start.dateTime = dtStart.format(dtFormatter);
+                    ZonedDateTime dtEnd = LocalDateTime.parse(event.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).atZone(ZoneId.of("UTC"));
+                    event.end.dateTime = dtEnd.format(dtFormatter);
+                }
                 //Sort the locations
-               if (event.locations != null) {
-                   event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
-               }
+                if (event.locations != null) {
+                    event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
+                }
                 //Sanitize body content
                 if (event.body != null && event.body.content != null && event.body.content.length() > 0) {
                     //Mark the event if there has been a change
-                    if (rs == Rooster.ZERMELO) {
+                    if (rooster == Rooster.ZERMELO) {
                         event.subject += " [!]";
                     }
                     event.body.contentType = BodyType.HTML;
                     event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
                 }
                 //Put the event in a hashtable for future reference
-                idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get()
-                        .users(userId)
-                        .events()
-                        .buildRequest()), HttpMethod.POST, event), event);
+                idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get().users(userId).events().buildRequest()), HttpMethod.POST, event), event);
             }
 
-            final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get()
-                    .batch()
-                    .buildRequest()
-                    .post(batchRequestContent);
+            final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get().batch().buildRequest().post(batchRequestContent);
 
             if (batchResponseContent != null && batchResponseContent.responses != null) {
                 for (BatchResponseStep<JsonElement> batchResponseStep : batchResponseContent.responses) {
@@ -126,8 +118,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                         //If event is created, put the response in the success flow file
                         routeToSuccess(session, batchResponseStep.body);
                         Event createdEvent = batchResponseStep.getDeserializedBody(Event.class);
-                        getLogger().info("Event for user {} with transactionId {} has been created. Event: {}",
-                                createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
+                        getLogger().info("Event for user {} with transactionId {} has been created. Event: {}", createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
                         //Put the event in the distributed map cache
                         putEventMapCache(idEvent.get(batchResponseStep.id), cache);
 
@@ -165,14 +156,6 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
     }
 
-    private Rooster getRooster(String roosterSystem) {
-        if ("magister".equalsIgnoreCase(roosterSystem))
-            return Rooster.MAGISTER;
-        else if ("zermelo".equalsIgnoreCase(roosterSystem))
-            return Rooster.ZERMELO;
-         else
-            return Rooster.UNKNOWN;
-       }
 
     @Override
     public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
@@ -183,15 +166,14 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             return;
         }
         final ComponentLog logger = getLogger();
-        final Rooster rs = getRooster(context.getProperty(GRAPH_RS).getValue());
+        rooster = getRooster(context.getProperty(GRAPH_RS).getValue());
         final boolean rebuildMapCache = context.getProperty(GRAPH_REBUILD_MAP_CACHE).asBoolean();
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile).getValue();
         final boolean isUpdate = Boolean.parseBoolean(context.getProperty(GRAPH_IS_UPDATE).evaluateAttributeExpressions(requestFlowFile).getValue());
 
         if (msGraphClientAtomicRef.get() == null) {
             logger.info("Microsoft Graph Client is not yet available.");
-            MicrosoftGraphCredentialService microsoftGraphCredentialService = context.getProperty(GRAPH_CONTROLLER_ID)
-                    .asControllerService(MicrosoftGraphCredentialService.class);
+            MicrosoftGraphCredentialService microsoftGraphCredentialService = context.getProperty(GRAPH_CONTROLLER_ID).asControllerService(MicrosoftGraphCredentialService.class);
             msGraphClientAtomicRef.set(microsoftGraphCredentialService.getGraphClient());
         }
 
@@ -234,7 +216,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             //If chosen, rebuild the map cache and exit
             if (rebuildMapCache) {
                 logger.info("Rebuilding mapcache and stop.");
-                for (Event event: eventsSource) {
+                for (Event event : eventsSource) {
                     putEventMapCache(event, cache);
                 }
                 session.transfer(requestFlowFile, REL_ORIGINAL);
@@ -246,12 +228,12 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
-            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache, rs);
+            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
 
             //Are there any events that have changed?
             //If so patch them in the graph
             //Also undo changed graph events and delete events
-            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate, rs);
+            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate);
 
             // The original flow file hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
@@ -263,9 +245,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
         // sometimes JSON batching causes socket timeouts; catch them and retry
         catch (ClientException exceptionToRetry) {
-            logger.error("Failed to create an event in Microsoft Graph due network problems. {}. More detailed information may be available in " +
-                            "the NiFi logs.",
-                    new Object[]{exceptionToRetry.getLocalizedMessage()}, exceptionToRetry);
+            logger.error("Failed to create an event in Microsoft Graph due network problems. {}. More detailed information may be available in " + "the NiFi logs.", new Object[]{exceptionToRetry.getLocalizedMessage()}, exceptionToRetry);
             // transfer original to retry
             session.transfer(requestFlowFile, REL_RETRY);
             context.yield();

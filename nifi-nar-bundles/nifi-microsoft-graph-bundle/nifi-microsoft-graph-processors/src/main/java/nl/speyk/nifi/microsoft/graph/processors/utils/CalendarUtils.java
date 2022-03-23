@@ -102,6 +102,21 @@ public final class CalendarUtils {
         MAGISTER,
         ZERMELO,
         UNKNOWN;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case MAGISTER: return "magister";
+                case ZERMELO: return "zermelo";
+                default: return "";
+            }
+        }
+    }
+
+    public static Rooster getRooster(String roosterSystem) {
+        return (roosterSystem.equalsIgnoreCase(Rooster.MAGISTER.toString()) ? Rooster.MAGISTER :
+                roosterSystem.equalsIgnoreCase(Rooster.ZERMELO.toString()) ? Rooster.ZERMELO :
+                        Rooster.UNKNOWN);
     }
 
     //Serializers needed for the distributed map cache
@@ -116,7 +131,7 @@ public final class CalendarUtils {
     public static class CacheValueDeserializer implements Deserializer<byte[]> {
 
         @Override
-        public byte[] deserialize(final byte[] input) throws DeserializationException, IOException {
+        public byte[] deserialize(final byte[] input) throws DeserializationException {
             if (input == null || input.length == 0) {
                 return null;
             }
