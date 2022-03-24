@@ -1,0 +1,104 @@
+[{
+    "operation": "modify-default-beta",
+    "spec": {
+      "*": {
+        "groupsTemp": "=sort(@(1,groups))",
+        "teachersTemp": "=sort(@(1,teachers))",
+        "subjectsTemp": "=sort(@(1,subjects))"
+      }
+    }
+  },
+  {
+    "operation": "shift",
+    "spec": {
+      "*": {
+        "appointmentInstance": "[&1].transactionIdTemp",
+        "locations": {
+          "*": {
+            "@": "[&3].locations.[&1].displayName"
+          }
+        },
+        "changeDescription": "[&1].bodyContentTemp",
+        "schedulerRemark": "[&1].bodyContentTemp",
+        "groupsTemp": "[&1].groupsSorted",
+        "teachersTemp": "[&1].teachersSorted",
+        "subjectsTemp": "[&1].subjectsSorted",
+        "startTimeSlotName": "[&1].startTimeSlotTemp",
+        "startDateTime": "[&1].start.dateTime",
+        "endDateTime": "[&1].end.dateTime",
+        "email": "[&1].organizer.emailAddress.address",
+        "expectedStudentCountOnline": {
+          "0": {
+            "#false": "[&3].isOnlineMeeting"
+          }
+        },
+        "cancelled": {
+          "true": {
+            "#tentative": "[&3].showAs"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation": "default",
+    "spec": {
+      "*": {
+        "start": {
+          "timeZone": "Europe/Berlin"
+        },
+        "end": {
+          "timeZone": "Europe/Berlin"
+        },
+        "showAs": "busy",
+        "isOnlineMeeting": "true",
+        "isReminderOn": "true",
+        "onlineMeetingProvider": "teamsForBusiness",
+        "body": {
+          "contentType": "HTML"
+        },
+        "organizer": {
+          "emailAddress": {
+            "address": "dis@dis.nl"
+          }
+        }
+      }
+    }
+  },
+  {
+    "operation": "modify-default-beta",
+    "spec": {
+      "*": {
+        "body": {
+          "content": "=join('.',@(2,bodyContentTemp))"
+        },
+        "groupsList": "=toString(@(1,groupsSorted))",
+        "teachersList": "=toString(@(1,teachersSorted))",
+        "subjectsList": "=toString(@(1,subjectsSorted))",
+        "transactionId": "=concat(@(1,teachersJoined),@(1,transactionIdTemp))",
+        "subject": "=concat('#', @(1,startTimeSlotTemp),' ',@(1,subjectsList),' - ',@(1,teachersList),' - ', @(1,groupsList))"
+      }
+    }
+  },
+  {
+    "operation": "remove",
+    "spec": {
+      "*": {
+        "bodyContentTemp": "",
+        "subjectsTemp": "",
+        "teachersTemp": "",
+        "groupsTemp": "",
+        "groupsSorted": "",
+        "teachersSorted": "",
+        "subjectsSorted": "",
+        "startTimeSlotTemp": "",
+        "teachersList": "",
+        "subjectsList": "",
+        "groupsList": "",
+        "transactionIdTemp": ""
+      }
+    }
+  }
+]
+
+
