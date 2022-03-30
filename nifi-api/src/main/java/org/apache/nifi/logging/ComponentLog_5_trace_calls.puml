@@ -1,0 +1,405 @@
+@startuml
+
+/' diagram meta data start
+config=CallConfiguration;
+{
+  "rootMethod": "org.apache.nifi.logging.ComponentLog#trace(String,Object...)",
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": ""
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false // root node is included
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showMethodParametersTypes": false,
+    "showMethodParametersNames": false,
+    "showMethodReturnType": false,
+    "showPackageLevels": 2,
+    "showCallOrder": false,
+    "edgeMode": "MethodsOnly", // TypesOnly, MethodsOnly, TypesAndMethods, MethodsAndDirectTypeUsage
+    "showDetailedClassStructure": false
+  },
+  "rootClass": "org.apache.nifi.logging.ComponentLog"
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="LR"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_1411517106 { 
+   	label=apache
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_781648802 { 
+   	label=nifi
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1249278105 { 
+   	label=ProxyOutputStream
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ProxyOutputStream292707256XXXwrite104431[
+	label="+ write()"
+	style=filled
+	fillcolor=white
+	tooltip="ProxyOutputStream
+
+null"
+	fontcolor=darkgreen
+];
+
+ProxyOutputStream292707256XXXwrite1143188790[
+	label="+ write()"
+	style=filled
+	fillcolor=white
+	tooltip="ProxyOutputStream
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1250929481 { 
+   	label=SimpleProcessLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   SimpleProcessLogger786985848XXXtrace117314406[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1319657757 { 
+   	label=ScriptedTransformRecord
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ScriptedTransformRecord96134626XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="ScriptedTransformRecord
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1333728902 { 
+   	label=AbstractProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractProcessor786985848XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractProcessor786985848XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. In the absence of the {@link org.apache.nifi.annotation.behavior.TriggerSerially} annotation,&#10;  this method may be called concurrently from different threads.&#10;  When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSession}, which&#10;  can be used for accessing FlowFiles, etc.&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate, as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1336242094 { 
+   	label=TimingInfo
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TimingInfo1456223176XXXaccept695942502[
+	label="+ accept()"
+	style=filled
+	fillcolor=white
+	tooltip="TimingInfo
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1345975778 { 
+   	label=ListedEntityTracker
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ListedEntityTracker1549696020XXXtrackEntities1209078333[
+	label="+ trackEntities()"
+	style=filled
+	fillcolor=white
+	tooltip="ListedEntityTracker
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1534396166 { 
+   	label=NopComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   NopComponentLog832281502XXXtrace117314406[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="NopComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1684153142 { 
+   	label=StandardLogRepository
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardLogRepository1292167443XXXaddLogMessage1084326245[
+	label="+ addLogMessage()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardLogRepository
+
+null"
+	fontcolor=darkgreen
+];
+
+StandardLogRepository1292167443XXXaddLogMessage907761562[
+	label="+ addLogMessage()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardLogRepository
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1801225384 { 
+   	label=ListS3
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ListS3593015804XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="ListS3
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1921211216 { 
+   	label=ComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ComponentLog978875333XXXtrace658265366[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="ComponentLog
+
+null"
+	penwidth=4
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2048858659 { 
+   	label=MockComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MockComponentLog306090332XXXtrace117314406[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_219057026 { 
+   	label=TerminationAwareLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TerminationAwareLogger1158014602XXXtrace117314406[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="TerminationAwareLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_492547111 { 
+   	label=MockComponentLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MockComponentLogger305847012XXXtrace117314406[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_69112404 { 
+   	label=BeatsDecoder
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   BeatsDecoder178469449XXXprocess3039496[
+	label="+ process()"
+	style=filled
+	fillcolor=white
+	tooltip="BeatsDecoder
+
+&#10;  Process the next byte from the channel, updating the builder and state accordingly.&#10; &#10;  @param currByte the next byte to process&#10;  @preturn true if a frame is ready to be retrieved, false otherwise&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_797583082 { 
+   	label=TailFile
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TailFile470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="TailFile
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+
+'edges    
+AbstractProcessor786985848XXXonTrigger1421322213 -> ListS3593015804XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger302525551 -> AbstractProcessor786985848XXXonTrigger1421322213;
+BeatsDecoder178469449XXXprocess3039496 -> ComponentLog978875333XXXtrace658265366;
+ComponentLog978875333XXXtrace658265366 -> MockComponentLog306090332XXXtrace117314406;
+ComponentLog978875333XXXtrace658265366 -> MockComponentLogger305847012XXXtrace117314406;
+ComponentLog978875333XXXtrace658265366 -> NopComponentLog832281502XXXtrace117314406;
+ComponentLog978875333XXXtrace658265366 -> SimpleProcessLogger786985848XXXtrace117314406;
+ComponentLog978875333XXXtrace658265366 -> TerminationAwareLogger1158014602XXXtrace117314406;
+ListS3593015804XXXonTrigger1421322213 -> ComponentLog978875333XXXtrace658265366;
+ListedEntityTracker1549696020XXXtrackEntities1209078333 -> ComponentLog978875333XXXtrace658265366;
+ProxyOutputStream292707256XXXwrite104431 -> ComponentLog978875333XXXtrace658265366;
+ProxyOutputStream292707256XXXwrite1143188790 -> ComponentLog978875333XXXtrace658265366;
+ScriptedTransformRecord96134626XXXonTrigger1421322213 -> ComponentLog978875333XXXtrace658265366;
+SimpleProcessLogger786985848XXXtrace117314406 -> StandardLogRepository1292167443XXXaddLogMessage907761562;
+StandardLogRepository1292167443XXXaddLogMessage907761562 -> StandardLogRepository1292167443XXXaddLogMessage1084326245;
+TailFile470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXtrace658265366;
+TerminationAwareLogger1158014602XXXtrace117314406 -> ComponentLog978875333XXXtrace658265366;
+TimingInfo1456223176XXXaccept695942502 -> ComponentLog978875333XXXtrace658265366;
+    
+}
+@enduml

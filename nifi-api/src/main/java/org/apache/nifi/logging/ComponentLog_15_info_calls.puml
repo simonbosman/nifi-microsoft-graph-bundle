@@ -1,0 +1,1883 @@
+@startuml
+
+/' diagram meta data start
+config=CallConfiguration;
+{
+  "rootMethod": "org.apache.nifi.logging.ComponentLog#info(String)",
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": ""
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false // root node is included
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showMethodParametersTypes": false,
+    "showMethodParametersNames": false,
+    "showMethodReturnType": false,
+    "showPackageLevels": 2,
+    "showCallOrder": false,
+    "edgeMode": "MethodsOnly", // TypesOnly, MethodsOnly, TypesAndMethods, MethodsAndDirectTypeUsage
+    "showDetailedClassStructure": false
+  },
+  "rootClass": "org.apache.nifi.logging.ComponentLog"
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="LR"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_109642426 { 
+   	label=speyk
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_1357476466 { 
+   	label=nifi
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_919407401 { 
+   	label=InvokeMicrosoftGraphCalendar
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   InvokeMicrosoftGraphCalendar652418931XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="InvokeMicrosoftGraphCalendar
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+
+subgraph cluster_1411517106 { 
+   	label=apache
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_781648802 { 
+   	label=nifi
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1000285697 { 
+   	label=PrometheusReportingTask
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PrometheusReportingTask427129340XXXonScheduled1613222919[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="PrometheusReportingTask
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1001616088 { 
+   	label=KerberosAction
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   KerberosAction1963001735XXXexecute0[
+	label="+ execute()"
+	style=filled
+	fillcolor=white
+	tooltip="KerberosAction
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1002388900 { 
+   	label=PublishMQTT
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishMQTT1617610039XXXonStopped135384992[
+	label="+ onStopped()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishMQTT
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1012720292 { 
+   	label=PutS3Object
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutS3Object593015804XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PutS3Object
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1080946293 { 
+   	label=AbstractElasticsearchTransportClientProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractElasticsearchTransportClientProcessor466089974XXXcloseClient0[
+	label="+ closeClient()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractElasticsearchTransportClientProcessor
+
+&#10;  Dispose of ElasticSearch client&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1144416029 { 
+   	label=DebugFlow
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   DebugFlow470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="DebugFlow
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1168332923 { 
+   	label=PublishKafkaRecord_1_0
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafkaRecord_1_01914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafkaRecord_1_0
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1168333884 { 
+   	label=PublishKafkaRecord_2_0
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafkaRecord_2_01914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafkaRecord_2_0
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1168333890 { 
+   	label=PublishKafkaRecord_2_6
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafkaRecord_2_61914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafkaRecord_2_6
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1185515444 { 
+   	label=HBase_1_1_2_ClientService
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   HBase_1_1_2_ClientService886316319XXXonEnabled1613222919[
+	label="+ onEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="HBase_1_1_2_ClientService
+
+&#10;  As of Apache NiFi 1.5.0, due to changes made to&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}, which is used by this&#10;  class to authenticate a principal with Kerberos, HBase controller services no longer&#10;  attempt relogins explicitly. For more information, please read the documentation for&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}.&#10;  \<p/\>&#10;  In previous versions of NiFi, a {@link org.apache.nifi.hadoop.KerberosTicketRenewer} was started&#10;  when the HBase controller service was enabled. The use of a separate thread to explicitly relogin could cause&#10;  race conditions with the implicit relogin attempts made by hadoop/HBase code on a thread that references the same&#10;  {@link UserGroupInformation} instance. One of these threads could leave the&#10;  {@link javax.security.auth.Subject} in {@link UserGroupInformation} to be cleared or in an unexpected state&#10;  while the other thread is attempting to use the {@link javax.security.auth.Subject}, resulting in failed&#10;  authentication attempts that would leave the HBase controller service in an unrecoverable state.&#10; &#10;  @see SecurityUtil#loginKerberos(Configuration, String, String)&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1188361006 { 
+   	label=PutSlack
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutSlack1388322851XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PutSlack
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1214845525 { 
+   	label=GetKafka
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   GetKafka1396033677XXXcreateConsumers135384992[
+	label="+ createConsumers()"
+	style=filled
+	fillcolor=white
+	tooltip="GetKafka
+
+null"
+	fontcolor=darkgreen
+];
+
+GetKafka1396033677XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="GetKafka
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1222388836 { 
+   	label=AbstractAWSCredentialsProviderProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractAWSCredentialsProviderProcessor224925046XXXonScheduled135384992[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractAWSCredentialsProviderProcessor
+
+&#10;  This method checks if {#link {@link #AWS_CREDENTIALS_PROVIDER_SERVICE} is available and if it&#10;  is, uses the credentials provider, otherwise it invokes the {@link AbstractAWSProcessor#onScheduled(ProcessContext)}&#10;  which uses static AWSCredentials for the aws processors&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_122532456 { 
+   	label=HBase_2_ClientService
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   HBase_2_ClientService886316319XXXonEnabled1613222919[
+	label="+ onEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="HBase_2_ClientService
+
+&#10;  As of Apache NiFi 1.5.0, due to changes made to&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}, which is used by this&#10;  class to authenticate a principal with Kerberos, HBase controller services no longer&#10;  attempt relogins explicitly. For more information, please read the documentation for&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}.&#10;  \<p/\>&#10;  In previous versions of NiFi, a {@link org.apache.nifi.hadoop.KerberosTicketRenewer} was started&#10;  when the HBase controller service was enabled. The use of a separate thread to explicitly relogin could cause&#10;  race conditions with the implicit relogin attempts made by hadoop/HBase code on a thread that references the same&#10;  {@link UserGroupInformation} instance. One of these threads could leave the&#10;  {@link javax.security.auth.Subject} in {@link UserGroupInformation} to be cleared or in an unexpected state&#10;  while the other thread is attempting to use the {@link javax.security.auth.Subject}, resulting in failed&#10;  authentication attempts that would leave the HBase controller service in an unrecoverable state.&#10; &#10;  @see SecurityUtil#loginKerberos(Configuration, String, String)&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1226525087 { 
+   	label=HandleHttpRequest
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   HandleHttpRequest470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="HandleHttpRequest
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_12334437 { 
+   	label=Neo4JCypherClientService
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   Neo4JCypherClientService885869364XXXclose0[
+	label="+ close()"
+	style=filled
+	fillcolor=white
+	tooltip="Neo4JCypherClientService
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1237439202 { 
+   	label=MetricsEventReportingTask
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MetricsEventReportingTask864807412XXXonTrigger602840001[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="MetricsEventReportingTask
+
+&#10;  This method is called on a scheduled interval to allow the Reporting Task&#10;  to perform its tasks.&#10; &#10;  @param context reporting context&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1247026487 { 
+   	label=ConsumeMQTT
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ConsumeMQTT1617610039XXXonStopped135384992[
+	label="+ onStopped()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeMQTT
+
+null"
+	fontcolor=darkgreen
+];
+
+ConsumeMQTT1617610039XXXonUnscheduled135384992[
+	label="+ onUnscheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeMQTT
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1247101897 { 
+   	label=ExtractCCDAAttributes
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ExtractCCDAAttributes1617298160XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="ExtractCCDAAttributes
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1250929481 { 
+   	label=SimpleProcessLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   SimpleProcessLogger786985848XXXdebug1808118735[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXinfo1808118735[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_125966884 { 
+   	label=AbstractConfigurableComponent
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractConfigurableComponent2052077808XXXvalidate1702492886[
+	label="+ validate()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractConfigurableComponent
+
+&#10;  Validates a set of properties, returning ValidationResults for any&#10;  invalid properties. All defined properties will be validated. If they are&#10;  not included in the purposed configuration, the default value will&#10;  be used.&#10; &#10;  @param context of validation&#10;  @return Collection of validation result objects for any invalid findings&#10;  only. If the collection is empty then the component is valid. Guaranteed&#10;  non-null&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1283138326 { 
+   	label=UpdateHiveTable
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   UpdateHiveTable1617453443XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="UpdateHiveTable
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1284165275 { 
+   	label=GetTCP
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   GetTCP437767650XXXtearDown0[
+	label="+ tearDown()"
+	style=filled
+	fillcolor=white
+	tooltip="GetTCP
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_129012520 { 
+   	label=PrometheusRecordSink
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PrometheusRecordSink427129340XXXonScheduled1613222919[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="PrometheusRecordSink
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1300410275 { 
+   	label=JettyWebSocketServer
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   JettyWebSocketServer1906630563XXXstopServer0[
+	label="+ stopServer()"
+	style=filled
+	fillcolor=white
+	tooltip="JettyWebSocketServer
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1329169254 { 
+   	label=IMapBasedHazelcastCacheManager
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   IMapBasedHazelcastCacheManager128941946XXXonEnabled1613222919[
+	label="+ onEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="IMapBasedHazelcastCacheManager
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1333728902 { 
+   	label=AbstractProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractProcessor786985848XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1345975778 { 
+   	label=ListedEntityTracker
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ListedEntityTracker1549696020XXXtrackEntities1209078333[
+	label="+ trackEntities()"
+	style=filled
+	fillcolor=white
+	tooltip="ListedEntityTracker
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1356493401 { 
+   	label=AbstractIgniteCacheProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractIgniteCacheProcessor388494129XXXcloseIgniteCache0[
+	label="+ closeIgniteCache()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractIgniteCacheProcessor
+
+&#10;  Close Ignite cache instance and calls base class closeIgnite&#10; "
+	fontcolor=darkgreen
+];
+
+AbstractIgniteCacheProcessor388494129XXXinitializeIgniteCache135384992[
+	label="+ initializeIgniteCache()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractIgniteCacheProcessor
+
+&#10;  Initialize the ignite cache instance&#10;  @param context process context&#10;  @throws ProcessException if there is a problem while scheduling the processor&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1361845157 { 
+   	label=AbstractAWSProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractAWSProcessor224925046XXXonScheduled135384992[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractAWSProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1428071880 { 
+   	label=ReportingTaskWrapper
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ReportingTaskWrapper1248989462XXXrun0[
+	label="+ run()"
+	style=filled
+	fillcolor=white
+	tooltip="ReportingTaskWrapper
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1451674878 { 
+   	label=PutRecord
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutRecord470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PutRecord
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1458778745 { 
+   	label=ScriptedRecordSink
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ScriptedRecordSink1053297219XXXsendData1493945457[
+	label="+ sendData()"
+	style=filled
+	fillcolor=white
+	tooltip="ScriptedRecordSink
+
+&#10;  Sends the record set to the RecordSinkService&#10;  @param recordSet The RecordSet to transmit&#10;  @param attributes Attributes associated with the RecordSet&#10;  @param sendZeroResults Whether to transmit empty record sets&#10;  @return a WriteResult object containing the number of records transmitted, as well as any metadata in the form of attributes&#10;  @throws IOException if any error occurs during transmission of the record set&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1470843951 { 
+   	label=AbstractMongoProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractMongoProcessor624533887XXXcloseClient0[
+	label="+ closeClient()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractMongoProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractMongoProcessor624533887XXXcreateClient135384992[
+	label="+ createClient()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractMongoProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1529748102 { 
+   	label=UpdateHive_1_1Table
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   UpdateHive_1_1Table1617453443XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="UpdateHive_1_1Table
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1534396166 { 
+   	label=NopComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   NopComponentLog832281502XXXdebug1808118735[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="NopComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+
+NopComponentLog832281502XXXinfo1808118735[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="NopComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1670086958 { 
+   	label=PutHiveStreaming
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutHiveStreaming1617453443XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PutHiveStreaming
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. In the absence of the {@link org.apache.nifi.annotation.behavior.TriggerSerially} annotation,&#10;  this method may be called concurrently from different threads.&#10;  When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSession}, which&#10;  can be used for accessing FlowFiles, etc.&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate, as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1684153142 { 
+   	label=StandardLogRepository
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardLogRepository1292167443XXXaddLogMessage1084326245[
+	label="+ addLogMessage()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardLogRepository
+
+null"
+	fontcolor=darkgreen
+];
+
+StandardLogRepository1292167443XXXaddLogMessage907761562[
+	label="+ addLogMessage()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardLogRepository
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1688233562 { 
+   	label=DruidTranquilityController
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   DruidTranquilityController1234721418XXXonConfigured1613222919[
+	label="+ onConfigured()"
+	style=filled
+	fillcolor=white
+	tooltip="DruidTranquilityController
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1708012223 { 
+   	label=CapturingLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   CapturingLogger306090332XXXdebug658265366[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="CapturingLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1740104857 { 
+   	label=PublishKafka_0_11
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafka_0_111914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafka_0_11
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1752160180 { 
+   	label=PutInfluxDB
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutInfluxDB1607313889XXXclose0[
+	label="+ close()"
+	style=filled
+	fillcolor=white
+	tooltip="PutInfluxDB
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1772932102 { 
+   	label=PutIgniteCache
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutIgniteCache388494129XXXcloseIgniteDataStreamer0[
+	label="+ closeIgniteDataStreamer()"
+	style=filled
+	fillcolor=white
+	tooltip="PutIgniteCache
+
+&#10;  Close data streamer and calls base classes close ignite cache&#10; "
+	fontcolor=darkgreen
+];
+
+PutIgniteCache388494129XXXcloseIgniteDataStreamerAndCache0[
+	label="+ closeIgniteDataStreamerAndCache()"
+	style=filled
+	fillcolor=white
+	tooltip="PutIgniteCache
+
+null"
+	fontcolor=darkgreen
+];
+
+PutIgniteCache388494129XXXinitializeIgniteDataStreamer135384992[
+	label="+ initializeIgniteDataStreamer()"
+	style=filled
+	fillcolor=white
+	tooltip="PutIgniteCache
+
+&#10;  Initialize ignite cache&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1841256695 { 
+   	label=TransformXml
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TransformXml470851760XXXonScheduled135384992[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="TransformXml
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1856116339 { 
+   	label=HadoopDBCPConnectionPool
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   HadoopDBCPConnectionPool305566405XXXonEnabled1613222919[
+	label="+ onEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="HadoopDBCPConnectionPool
+
+&#10;  Configures connection pool by creating an instance of the&#10;  {@link BasicDataSource} based on configuration provided with&#10;  {@link ConfigurationContext}.&#10; &#10;  This operation makes no guarantees that the actual connection could be&#10;  made since the underlying system may still go off-line during normal&#10;  operation of the connection pool.&#10; &#10;  @param context&#10; the configuration context&#10;  @throws InitializationException&#10;  if unable to create a database connection&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1857245807 { 
+   	label=PublishKafka_2_6
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafka_2_61914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafka_2_6
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1857245813 { 
+   	label=PublishKafka_2_0
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafka_2_01914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafka_2_0
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1857246774 { 
+   	label=PublishKafka_1_0
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafka_1_01914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafka_1_0
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1858552534 { 
+   	label=PublishKafkaRecord_0_11
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PublishKafkaRecord_0_111914862338XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PublishKafkaRecord_0_11
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1865804362 { 
+   	label=LogAttribute
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   LogAttribute470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="LogAttribute
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1867494049 { 
+   	label=GetIgniteCache
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   GetIgniteCache388494129XXXinitialize135384992[
+	label="+ initialize()"
+	style=filled
+	fillcolor=white
+	tooltip="GetIgniteCache
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1872801564 { 
+   	label=AbstractElasticsearch5TransportClientProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractElasticsearch5TransportClientProcessor466089974XXXcloseClient0[
+	label="+ closeClient()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractElasticsearch5TransportClientProcessor
+
+&#10;  Dispose of ElasticSearch client&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_191150379 { 
+   	label=AbstractEnrichProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractEnrichProcessor486784424XXXcustomValidate1702492886[
+	label="+ customValidate()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractEnrichProcessor
+
+&#10;  Allows subclasses to perform their own validation on the already set&#10;  properties. Since each property is validated as it is set this allows&#10;  validation of groups of properties together. Default return is an empty&#10;  set.&#10; &#10;  This method will be called only when it has been determined that all&#10;  property values are valid according to their corresponding&#10;  PropertyDescriptor's validators.&#10; &#10;  @param validationContext provides a mechanism for obtaining externally&#10;  managed values, such as property values and supplies convenience methods&#10;  for operating on those values&#10; &#10;  @return Collection of ValidationResult objects that will be added to any&#10;  other validation findings - may be null&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1921211216 { 
+   	label=ComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ComponentLog978875333XXXinfo1808118735[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="ComponentLog
+
+null"
+	penwidth=4
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1968321111 { 
+   	label=AbstractActionHandlerService
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractActionHandlerService1756063142XXXexecute1282825552[
+	label="+ execute()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractActionHandlerService
+
+&#10;  Execute the given action for the provided facts&#10;  @param action The action that should be performed by the handler&#10;  @param facts The facts that triggered this action&#10; "
+	fontcolor=darkgreen
+];
+
+AbstractActionHandlerService1756063142XXXexecute213004546[
+	label="+ execute()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractActionHandlerService
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1973573297 { 
+   	label=RecordSinkServiceLookup
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   RecordSinkServiceLookup863888114XXXsendData1493945457[
+	label="+ sendData()"
+	style=filled
+	fillcolor=white
+	tooltip="RecordSinkServiceLookup
+
+&#10;  Sends the record set to the RecordSinkService&#10;  @param recordSet The RecordSet to transmit&#10;  @param attributes Attributes associated with the RecordSet&#10;  @param sendZeroResults Whether to transmit empty record sets&#10;  @return a WriteResult object containing the number of records transmitted, as well as any metadata in the form of attributes&#10;  @throws IOException if any error occurs during transmission of the record set&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2043953590 { 
+   	label=ExecuteInfluxDBQuery
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ExecuteInfluxDBQuery1607313889XXXclose0[
+	label="+ close()"
+	style=filled
+	fillcolor=white
+	tooltip="ExecuteInfluxDBQuery
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2048858659 { 
+   	label=MockComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MockComponentLog306090332XXXdebug1808118735[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+
+MockComponentLog306090332XXXinfo1808118735[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2062646041 { 
+   	label=PutAccumuloRecord
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutAccumuloRecord1352152982XXXonScheduled135384992[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="PutAccumuloRecord
+
+null"
+	fontcolor=darkgreen
+];
+
+PutAccumuloRecord1352152982XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PutAccumuloRecord
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2079389281 { 
+   	label=UpdateHive3Table
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   UpdateHive3Table1617453443XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="UpdateHive3Table
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2125007618 { 
+   	label=CryptographicHashContent
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   CryptographicHashContent470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="CryptographicHashContent
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2135853861 { 
+   	label=AbstractRethinkDBProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractRethinkDBProcessor760475350XXXclose0[
+	label="+ close()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractRethinkDBProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2137138951 { 
+   	label=QueryNiFiReportingTask
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   QueryNiFiReportingTask864807412XXXonTrigger602840001[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="QueryNiFiReportingTask
+
+&#10;  This method is called on a scheduled interval to allow the Reporting Task&#10;  to perform its tasks.&#10; &#10;  @param context reporting context&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2139277237 { 
+   	label=StatelessSchedulingAgent
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StatelessSchedulingAgent395280032XXXschedule1008577232[
+	label="+ schedule()"
+	style=filled
+	fillcolor=white
+	tooltip="StatelessSchedulingAgent
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_219057026 { 
+   	label=TerminationAwareLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TerminationAwareLogger1158014602XXXdebug1808118735[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="TerminationAwareLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+TerminationAwareLogger1158014602XXXinfo1808118735[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="TerminationAwareLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_220396826 { 
+   	label=ActionHandlerLookup
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ActionHandlerLookup1756063142XXXexecute213004546[
+	label="+ execute()"
+	style=filled
+	fillcolor=white
+	tooltip="ActionHandlerLookup
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_292707256 { 
+   	label=ExecuteProcess
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ExecuteProcess470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="ExecuteProcess
+
+null"
+	fontcolor=darkgreen
+];
+
+ExecuteProcess470851760XXXshutdownExecutor0[
+	label="+ shutdownExecutor()"
+	style=filled
+	fillcolor=white
+	tooltip="ExecuteProcess
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_319221453 { 
+   	label=ConsumeWindowsEventLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ConsumeWindowsEventLog136919790XXXstop0[
+	label="+ stop()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeWindowsEventLog
+
+&#10;  Cleanup&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_320771679 { 
+   	label=LogMessage
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   LogMessage470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="LogMessage
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_327015733 { 
+   	label=AbstractInfluxDBProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractInfluxDBProcessor1607313889XXXclose0[
+	label="+ close()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractInfluxDBProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_405985694 { 
+   	label=CountText
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   CountText470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="CountText
+
+&#10;  Will count text attributes of the incoming stream.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_463838141 { 
+   	label=Hive_1_1ConnectionPool
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   Hive_1_1ConnectionPool1442347257XXXonConfigured1613222919[
+	label="+ onConfigured()"
+	style=filled
+	fillcolor=white
+	tooltip="Hive_1_1ConnectionPool
+
+&#10;  Configures connection pool by creating an instance of the&#10;  {@link BasicDataSource} based on configuration provided with&#10;  {@link ConfigurationContext}.&#10;  \<p\>&#10;  This operation makes no guarantees that the actual connection could be&#10;  made since the underlying system may still go off-line during normal&#10;  operation of the connection pool.&#10;  \<p/\>&#10;  As of Apache NiFi 1.5.0, due to changes made to&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}, which is used by this class invoking&#10;  {@link HiveConfigurator#authenticate(Configuration, String, String)}&#10;  to authenticate a principal with Kerberos, Hive controller services no longer use a separate thread to&#10;  relogin, and instead call {@link UserGroupInformation#checkTGTAndReloginFromKeytab()} from&#10;  {@link Hive_1_1ConnectionPool#getConnection()}. The relogin request is performed in a synchronized block to prevent&#10;  threads from requesting concurrent relogins. For more information, please read the documentation for&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}.&#10;  \<p/\>&#10;  In previous versions of NiFi, a {@link org.apache.nifi.hadoop.KerberosTicketRenewer} was started by&#10;  {@link HiveConfigurator#authenticate(Configuration, String, String, long)} when the Hive&#10;  controller service was enabled. The use of a separate thread to explicitly relogin could cause race conditions&#10;  with the implicit relogin attempts made by hadoop/Hive code on a thread that references the same&#10;  {@link UserGroupInformation} instance. One of these threads could leave the&#10;  {@link javax.security.auth.Subject} in {@link UserGroupInformation} to be cleared or in an unexpected state&#10;  while the other thread is attempting to use the {@link javax.security.auth.Subject}, resulting in failed&#10;  authentication attempts that would leave the Hive controller service in an unrecoverable state.&#10; &#10;  @see SecurityUtil#loginKerberos(Configuration, String, String)&#10;  @see HiveConfigurator#authenticate(Configuration, String, String)&#10;  @see HiveConfigurator#authenticate(Configuration, String, String, long)&#10;  @param context the configuration context&#10;  @throws InitializationException if unable to create a database connection&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_492547111 { 
+   	label=MockComponentLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MockComponentLogger305847012XXXdebug1808118735[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+MockComponentLogger305847012XXXinfo1808118735[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_53399307 { 
+   	label=RedisUtils
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   RedisUtils368038289XXXcreateConnectionFactory1687534869[
+	label="+ createConnectionFactory()"
+	style=filled
+	fillcolor=white
+	tooltip="RedisUtils
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_667761368 { 
+   	label=Hive3ConnectionPool
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   Hive3ConnectionPool1442347257XXXonConfigured1613222919[
+	label="+ onConfigured()"
+	style=filled
+	fillcolor=white
+	tooltip="Hive3ConnectionPool
+
+&#10;  Configures connection pool by creating an instance of the&#10;  {@link BasicDataSource} based on configuration provided with&#10;  {@link ConfigurationContext}.&#10;  \<p\>&#10;  This operation makes no guarantees that the actual connection could be&#10;  made since the underlying system may still go off-line during normal&#10;  operation of the connection pool.&#10;  \<p/\>&#10;  As of Apache NiFi 1.5.0, due to changes made to&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}, which is used by this class invoking&#10;  {@link HiveConfigurator#authenticate(Configuration, String, String)}&#10;  to authenticate a principal with Kerberos, Hive controller services no longer use a separate thread to&#10;  relogin, and instead call {@link UserGroupInformation#checkTGTAndReloginFromKeytab()} from&#10;  {@link Hive3ConnectionPool#getConnection()}. The relogin request is performed in a synchronized block to prevent&#10;  threads from requesting concurrent relogins. For more information, please read the documentation for&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}.&#10;  \<p/\>&#10;  In previous versions of NiFi, a {@link org.apache.nifi.hadoop.KerberosTicketRenewer} was started by&#10;  {@link HiveConfigurator#authenticate(Configuration, String, String, long)} when the Hive&#10;  controller service was enabled. The use of a separate thread to explicitly relogin could cause race conditions&#10;  with the implicit relogin attempts made by hadoop/Hive code on a thread that references the same&#10;  {@link UserGroupInformation} instance. One of these threads could leave the&#10;  {@link javax.security.auth.Subject} in {@link UserGroupInformation} to be cleared or in an unexpected state&#10;  while the other thread is attempting to use the {@link javax.security.auth.Subject}, resulting in failed&#10;  authentication attempts that would leave the Hive controller service in an unrecoverable state.&#10; &#10;  @see SecurityUtil#loginKerberos(Configuration, String, String)&#10;  @see HiveConfigurator#authenticate(Configuration, String, String)&#10;  @see HiveConfigurator#authenticate(Configuration, String, String, long)&#10;  @param context the configuration context&#10;  @throws InitializationException if unable to create a database connection&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_669466463 { 
+   	label=AbstractAMQPProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractAMQPProcessor1483774730XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractAMQPProcessor
+
+&#10;  Will builds target resource ({@link AMQPPublisher} or {@link AMQPConsumer}) upon first invocation and will delegate to the&#10;  implementation of {@link #processResource} method for further processing.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_693625239 { 
+   	label=SiteToSiteBulletinReportingTask
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   SiteToSiteBulletinReportingTask1528425748XXXonTrigger602840001[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="SiteToSiteBulletinReportingTask
+
+&#10;  This method is called on a scheduled interval to allow the Reporting Task&#10;  to perform its tasks.&#10; &#10;  @param context reporting context&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_744279413 { 
+   	label=AbstractIgniteProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractIgniteProcessor378851107XXXcloseIgnite0[
+	label="+ closeIgnite()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractIgniteProcessor
+
+&#10;  Close ignite instance&#10; "
+	fontcolor=darkgreen
+];
+
+AbstractIgniteProcessor378851107XXXinitializeIgnite135384992[
+	label="+ initializeIgnite()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractIgniteProcessor
+
+&#10;  Initialize ignite instance&#10;  @param context process context&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_805776095 { 
+   	label=HiveConnectionPool
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   HiveConnectionPool1442347257XXXonConfigured1613222919[
+	label="+ onConfigured()"
+	style=filled
+	fillcolor=white
+	tooltip="HiveConnectionPool
+
+&#10;  Configures connection pool by creating an instance of the&#10;  {@link BasicDataSource} based on configuration provided with&#10;  {@link ConfigurationContext}.&#10;  \<p\>&#10;  This operation makes no guarantees that the actual connection could be&#10;  made since the underlying system may still go off-line during normal&#10;  operation of the connection pool.&#10;  \<p/\>&#10;  As of Apache NiFi 1.5.0, due to changes made to&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}, which is used by this class invoking&#10;  {@link HiveConfigurator#authenticate(Configuration, String, String)}&#10;  to authenticate a principal with Kerberos, Hive controller services no longer use a separate thread to&#10;  relogin, and instead call {@link UserGroupInformation#checkTGTAndReloginFromKeytab()} from&#10;  {@link HiveConnectionPool#getConnection()}. The relogin request is performed in a synchronized block to prevent&#10;  threads from requesting concurrent relogins. For more information, please read the documentation for&#10;  {@link SecurityUtil#loginKerberos(Configuration, String, String)}.&#10;  \<p/\>&#10;  In previous versions of NiFi, a {@link org.apache.nifi.hadoop.KerberosTicketRenewer} was started by&#10;  {@link HiveConfigurator#authenticate(Configuration, String, String, long)} when the Hive&#10;  controller service was enabled. The use of a separate thread to explicitly relogin could cause race conditions&#10;  with the implicit relogin attempts made by hadoop/Hive code on a thread that references the same&#10;  {@link UserGroupInformation} instance. One of these threads could leave the&#10;  {@link javax.security.auth.Subject} in {@link UserGroupInformation} to be cleared or in an unexpected state&#10;  while the other thread is attempting to use the {@link javax.security.auth.Subject}, resulting in failed&#10;  authentication attempts that would leave the Hive controller service in an unrecoverable state.&#10; &#10;  @see SecurityUtil#loginKerberos(Configuration, String, String)&#10;  @see HiveConfigurator#authenticate(Configuration, String, String)&#10;  @see HiveConfigurator#authenticate(Configuration, String, String, long)&#10;  @param context the configuration context&#10;  @throws InitializationException if unable to create a database connection&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_833282584 { 
+   	label=AbstractListProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractListProcessor1549696020XXXlistByNoTracking1421322213[
+	label="+ listByNoTracking()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXlistByTimeWindow1421322213[
+	label="+ listByTimeWindow()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXlistByTrackingTimestamps1421322213[
+	label="+ listByTrackingTimestamps()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXupdateState135384992[
+	label="+ updateState()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_865575523 { 
+   	label=MongoDBControllerService
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MongoDBControllerService1872849112XXXonEnabled1613222919[
+	label="+ onEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="MongoDBControllerService
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_914291432 { 
+   	label=SiteToSiteReportingRecordSink
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   SiteToSiteReportingRecordSink1039218477XXXsendData1493945457[
+	label="+ sendData()"
+	style=filled
+	fillcolor=white
+	tooltip="SiteToSiteReportingRecordSink
+
+&#10;  Sends the record set to the RecordSinkService&#10;  @param recordSet The RecordSet to transmit&#10;  @param attributes Attributes associated with the RecordSet&#10;  @param sendZeroResults Whether to transmit empty record sets&#10;  @return a WriteResult object containing the number of records transmitted, as well as any metadata in the form of attributes&#10;  @throws IOException if any error occurs during transmission of the record set&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_928489541 { 
+   	label=ScriptedActionHandler
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ScriptedActionHandler2020056353XXXexecute1282825552[
+	label="+ execute()"
+	style=filled
+	fillcolor=white
+	tooltip="ScriptedActionHandler
+
+&#10;  Execute the given action for the provided facts&#10;  @param action The action that should be performed by the handler&#10;  @param facts The facts that triggered this action&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_932155848 { 
+   	label=CDAValidationHandler
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   CDAValidationHandler1247101897XXXhandleInfo445560775[
+	label="+ handleInfo()"
+	style=filled
+	fillcolor=white
+	tooltip="CDAValidationHandler
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+
+'edges    
+AbstractAMQPProcessor1483774730XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+AbstractAWSCredentialsProviderProcessor224925046XXXonScheduled135384992 -> AbstractAWSProcessor224925046XXXonScheduled135384992;
+AbstractAWSCredentialsProviderProcessor224925046XXXonScheduled135384992 -> ComponentLog978875333XXXinfo1808118735;
+AbstractAWSProcessor224925046XXXonScheduled135384992 -> AbstractAWSCredentialsProviderProcessor224925046XXXonScheduled135384992;
+AbstractAWSProcessor224925046XXXonScheduled135384992 -> ComponentLog978875333XXXinfo1808118735;
+AbstractActionHandlerService1756063142XXXexecute1282825552 -> SiteToSiteReportingRecordSink1039218477XXXsendData1493945457;
+AbstractActionHandlerService1756063142XXXexecute213004546 -> SiteToSiteReportingRecordSink1039218477XXXsendData1493945457;
+AbstractConfigurableComponent2052077808XXXvalidate1702492886 -> ComponentLog978875333XXXinfo1808118735;
+AbstractElasticsearch5TransportClientProcessor466089974XXXcloseClient0 -> ComponentLog978875333XXXinfo1808118735;
+AbstractElasticsearchTransportClientProcessor466089974XXXcloseClient0 -> ComponentLog978875333XXXinfo1808118735;
+AbstractEnrichProcessor486784424XXXcustomValidate1702492886 -> ComponentLog978875333XXXinfo1808118735;
+AbstractIgniteCacheProcessor388494129XXXcloseIgniteCache0 -> AbstractIgniteProcessor378851107XXXcloseIgnite0;
+AbstractIgniteCacheProcessor388494129XXXcloseIgniteCache0 -> ComponentLog978875333XXXinfo1808118735;
+AbstractIgniteCacheProcessor388494129XXXinitializeIgniteCache135384992 -> AbstractIgniteProcessor378851107XXXinitializeIgnite135384992;
+AbstractIgniteCacheProcessor388494129XXXinitializeIgniteCache135384992 -> ComponentLog978875333XXXinfo1808118735;
+AbstractIgniteProcessor378851107XXXcloseIgnite0 -> ComponentLog978875333XXXinfo1808118735;
+AbstractIgniteProcessor378851107XXXinitializeIgnite135384992 -> ComponentLog978875333XXXinfo1808118735;
+AbstractInfluxDBProcessor1607313889XXXclose0 -> ComponentLog978875333XXXinfo1808118735;
+AbstractInfluxDBProcessor1607313889XXXclose0 -> ExecuteInfluxDBQuery1607313889XXXclose0;
+AbstractInfluxDBProcessor1607313889XXXclose0 -> PutInfluxDB1607313889XXXclose0;
+AbstractListProcessor1549696020XXXlistByNoTracking1421322213 -> ComponentLog978875333XXXinfo1808118735;
+AbstractListProcessor1549696020XXXlistByTimeWindow1421322213 -> ComponentLog978875333XXXinfo1808118735;
+AbstractListProcessor1549696020XXXlistByTrackingTimestamps1421322213 -> ComponentLog978875333XXXinfo1808118735;
+AbstractListProcessor1549696020XXXonTrigger1421322213 -> AbstractListProcessor1549696020XXXlistByNoTracking1421322213;
+AbstractListProcessor1549696020XXXonTrigger1421322213 -> AbstractListProcessor1549696020XXXlistByTimeWindow1421322213;
+AbstractListProcessor1549696020XXXonTrigger1421322213 -> AbstractListProcessor1549696020XXXlistByTrackingTimestamps1421322213;
+AbstractListProcessor1549696020XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+AbstractListProcessor1549696020XXXupdateState135384992 -> ComponentLog978875333XXXinfo1808118735;
+AbstractMongoProcessor624533887XXXcloseClient0 -> ComponentLog978875333XXXinfo1808118735;
+AbstractMongoProcessor624533887XXXcreateClient135384992 -> ComponentLog978875333XXXinfo1808118735;
+AbstractProcessor786985848XXXonTrigger1421322213 -> AbstractAMQPProcessor1483774730XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> AbstractListProcessor1549696020XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> ExtractCCDAAttributes1617298160XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> GetKafka1396033677XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> PublishKafka_2_01914862338XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> PublishKafka_2_61914862338XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> PutRecord470851760XXXonTrigger1421322213;
+AbstractRethinkDBProcessor760475350XXXclose0 -> ComponentLog978875333XXXinfo1808118735;
+ActionHandlerLookup1756063142XXXexecute213004546 -> AbstractActionHandlerService1756063142XXXexecute213004546;
+CDAValidationHandler1247101897XXXhandleInfo445560775 -> ComponentLog978875333XXXinfo1808118735;
+ComponentLog978875333XXXinfo1808118735 -> MockComponentLog306090332XXXinfo1808118735;
+ComponentLog978875333XXXinfo1808118735 -> MockComponentLogger305847012XXXinfo1808118735;
+ComponentLog978875333XXXinfo1808118735 -> NopComponentLog832281502XXXinfo1808118735;
+ComponentLog978875333XXXinfo1808118735 -> SimpleProcessLogger786985848XXXinfo1808118735;
+ComponentLog978875333XXXinfo1808118735 -> TerminationAwareLogger1158014602XXXinfo1808118735;
+ConsumeMQTT1617610039XXXonStopped135384992 -> ComponentLog978875333XXXinfo1808118735;
+ConsumeMQTT1617610039XXXonUnscheduled135384992 -> ComponentLog978875333XXXinfo1808118735;
+ConsumeWindowsEventLog136919790XXXstop0 -> ComponentLog978875333XXXinfo1808118735;
+CountText470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+CryptographicHashContent470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+DebugFlow470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+DruidTranquilityController1234721418XXXonConfigured1613222919 -> ComponentLog978875333XXXinfo1808118735;
+ExecuteInfluxDBQuery1607313889XXXclose0 -> AbstractInfluxDBProcessor1607313889XXXclose0;
+ExecuteProcess470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+ExecuteProcess470851760XXXshutdownExecutor0 -> ComponentLog978875333XXXinfo1808118735;
+ExtractCCDAAttributes1617298160XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+GetIgniteCache388494129XXXinitialize135384992 -> AbstractIgniteCacheProcessor388494129XXXinitializeIgniteCache135384992;
+GetKafka1396033677XXXcreateConsumers135384992 -> ComponentLog978875333XXXinfo1808118735;
+GetKafka1396033677XXXonTrigger1421322213 -> GetKafka1396033677XXXcreateConsumers135384992;
+GetTCP437767650XXXtearDown0 -> ComponentLog978875333XXXinfo1808118735;
+HBase_1_1_2_ClientService886316319XXXonEnabled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+HBase_2_ClientService886316319XXXonEnabled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+HadoopDBCPConnectionPool305566405XXXonEnabled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+HandleHttpRequest470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+Hive3ConnectionPool1442347257XXXonConfigured1613222919 -> ComponentLog978875333XXXinfo1808118735;
+HiveConnectionPool1442347257XXXonConfigured1613222919 -> ComponentLog978875333XXXinfo1808118735;
+Hive_1_1ConnectionPool1442347257XXXonConfigured1613222919 -> ComponentLog978875333XXXinfo1808118735;
+IMapBasedHazelcastCacheManager128941946XXXonEnabled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+InvokeMicrosoftGraphCalendar652418931XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+JettyWebSocketServer1906630563XXXstopServer0 -> ComponentLog978875333XXXinfo1808118735;
+KerberosAction1963001735XXXexecute0 -> ComponentLog978875333XXXinfo1808118735;
+ListedEntityTracker1549696020XXXtrackEntities1209078333 -> ComponentLog978875333XXXinfo1808118735;
+LogAttribute470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+LogMessage470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+MetricsEventReportingTask864807412XXXonTrigger602840001 -> AbstractActionHandlerService1756063142XXXexecute213004546;
+MockComponentLog306090332XXXdebug1808118735 -> CapturingLogger306090332XXXdebug658265366;
+MongoDBControllerService1872849112XXXonEnabled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+Neo4JCypherClientService885869364XXXclose0 -> ComponentLog978875333XXXinfo1808118735;
+PrometheusRecordSink427129340XXXonScheduled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+PrometheusReportingTask427129340XXXonScheduled1613222919 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafkaRecord_0_111914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafkaRecord_1_01914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafkaRecord_2_01914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafkaRecord_2_61914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafka_0_111914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafka_1_01914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafka_2_01914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishKafka_2_61914862338XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PublishMQTT1617610039XXXonStopped135384992 -> ComponentLog978875333XXXinfo1808118735;
+PutAccumuloRecord1352152982XXXonScheduled135384992 -> ComponentLog978875333XXXinfo1808118735;
+PutAccumuloRecord1352152982XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PutHiveStreaming1617453443XXXonTrigger302525551 -> ComponentLog978875333XXXinfo1808118735;
+PutIgniteCache388494129XXXcloseIgniteDataStreamer0 -> ComponentLog978875333XXXinfo1808118735;
+PutIgniteCache388494129XXXcloseIgniteDataStreamerAndCache0 -> AbstractIgniteCacheProcessor388494129XXXcloseIgniteCache0;
+PutIgniteCache388494129XXXcloseIgniteDataStreamerAndCache0 -> PutIgniteCache388494129XXXcloseIgniteDataStreamer0;
+PutIgniteCache388494129XXXinitializeIgniteDataStreamer135384992 -> AbstractIgniteCacheProcessor388494129XXXinitializeIgniteCache135384992;
+PutIgniteCache388494129XXXinitializeIgniteDataStreamer135384992 -> ComponentLog978875333XXXinfo1808118735;
+PutInfluxDB1607313889XXXclose0 -> AbstractInfluxDBProcessor1607313889XXXclose0;
+PutRecord470851760XXXonTrigger1421322213 -> SiteToSiteReportingRecordSink1039218477XXXsendData1493945457;
+PutS3Object593015804XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+PutSlack1388322851XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+QueryNiFiReportingTask864807412XXXonTrigger602840001 -> SiteToSiteReportingRecordSink1039218477XXXsendData1493945457;
+RecordSinkServiceLookup863888114XXXsendData1493945457 -> SiteToSiteReportingRecordSink1039218477XXXsendData1493945457;
+RedisUtils368038289XXXcreateConnectionFactory1687534869 -> ComponentLog978875333XXXinfo1808118735;
+ReportingTaskWrapper1248989462XXXrun0 -> QueryNiFiReportingTask864807412XXXonTrigger602840001;
+ScriptedActionHandler2020056353XXXexecute1282825552 -> AbstractActionHandlerService1756063142XXXexecute1282825552;
+ScriptedRecordSink1053297219XXXsendData1493945457 -> SiteToSiteReportingRecordSink1039218477XXXsendData1493945457;
+SimpleProcessLogger786985848XXXinfo1808118735 -> StandardLogRepository1292167443XXXaddLogMessage907761562;
+SiteToSiteBulletinReportingTask1528425748XXXonTrigger602840001 -> ComponentLog978875333XXXinfo1808118735;
+SiteToSiteReportingRecordSink1039218477XXXsendData1493945457 -> ComponentLog978875333XXXinfo1808118735;
+StandardLogRepository1292167443XXXaddLogMessage907761562 -> StandardLogRepository1292167443XXXaddLogMessage1084326245;
+StatelessSchedulingAgent395280032XXXschedule1008577232 -> QueryNiFiReportingTask864807412XXXonTrigger602840001;
+TerminationAwareLogger1158014602XXXinfo1808118735 -> ComponentLog978875333XXXinfo1808118735;
+TerminationAwareLogger1158014602XXXinfo1808118735 -> MockComponentLog306090332XXXdebug1808118735;
+TerminationAwareLogger1158014602XXXinfo1808118735 -> MockComponentLogger305847012XXXdebug1808118735;
+TerminationAwareLogger1158014602XXXinfo1808118735 -> NopComponentLog832281502XXXdebug1808118735;
+TerminationAwareLogger1158014602XXXinfo1808118735 -> SimpleProcessLogger786985848XXXdebug1808118735;
+TerminationAwareLogger1158014602XXXinfo1808118735 -> TerminationAwareLogger1158014602XXXdebug1808118735;
+TransformXml470851760XXXonScheduled135384992 -> ComponentLog978875333XXXinfo1808118735;
+UpdateHive3Table1617453443XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+UpdateHiveTable1617453443XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+UpdateHive_1_1Table1617453443XXXonTrigger1421322213 -> ComponentLog978875333XXXinfo1808118735;
+    
+}
+@enduml

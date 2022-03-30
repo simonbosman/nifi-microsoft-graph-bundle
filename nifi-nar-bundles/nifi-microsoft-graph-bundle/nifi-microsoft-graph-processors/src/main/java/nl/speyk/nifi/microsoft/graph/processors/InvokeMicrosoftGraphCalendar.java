@@ -16,17 +16,10 @@
  */
 package nl.speyk.nifi.microsoft.graph.processors;
 
-import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.microsoft.graph.content.BatchRequestContent;
-import com.microsoft.graph.content.BatchResponseContent;
-import com.microsoft.graph.content.BatchResponseStep;
 import com.microsoft.graph.core.ClientException;
 import com.microsoft.graph.http.GraphServiceException;
-import com.microsoft.graph.http.HttpMethod;
-import com.microsoft.graph.http.HttpResponseCode;
-import com.microsoft.graph.models.BodyType;
 import com.microsoft.graph.models.Event;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import org.apache.commons.io.IOUtils;
@@ -36,125 +29,18 @@ import org.apache.nifi.logging.ComponentLog;
 import org.apache.nifi.processor.ProcessContext;
 import org.apache.nifi.processor.ProcessSession;
 import org.apache.nifi.processor.exception.ProcessException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Entities;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
-import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils.*;
 
 public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar {
-
-    //Patch events for user if event has changed
-    private void patchGraphEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session, boolean isUpdate) throws IOException, NoSuchAlgorithmException, ParseException {
-
-        undoEvents(userId, eventsGraph, cache, session);
-        patchEvents(userId, eventsSource, eventsGraph, cache, session);
-
-        //If we are updating, we stop here
-        if (!isUpdate) {
-            deleteEvents(userId, eventsSource, eventsGraph, cache, session);
-        }
-    }
-
-    private void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, boolean isUpdate, final FlowFile requestFlowFile, final DistributedMapCacheClient cache) throws ClientException, IOException, NoSuchAlgorithmException {
-        // Attributes for success and retry flow files
-        final Map<String, String> attributes = new Hashtable<>();
-        attributes.put("Content-Type", "application/json; charset=utf-8");
-        attributes.put("mime.type", "application/json");
-
-        // error codes for retry
-        final int[] errorCodes = {GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE, GRAPH_HTTP_GATEWAY_TIMEOUT};
-
-        // Partition the list in sub lists of 4 each
-        for (List<Event> eventList : Lists.partition(events, GRAPH_MAILBOX_CONCURRENCY_LIMIT)) {
-            // JSON batch request
-            // @see <a href>"https://docs.microsoft.com/en-us/graph/json-batching"</a>
-            final Map<String, Event> idEvent = new Hashtable<>();
-            final BatchRequestContent batchRequestContent = new BatchRequestContent();
-
-            // Four requests per batch
-            for (Event event : eventList) {
-                //Adjust timezones for Zermelo
-                if (rooster == Rooster.ZERMELO) {
-                    DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").withZone(ZoneId.of("Europe/Berlin"));
-                    ZonedDateTime dtStart = LocalDateTime.parse(event.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).atZone(ZoneId.of("UTC"));
-                    event.start.dateTime = dtStart.format(dtFormatter);
-                    ZonedDateTime dtEnd = LocalDateTime.parse(event.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")).atZone(ZoneId.of("UTC"));
-                    event.end.dateTime = dtEnd.format(dtFormatter);
-                }
-                //Sort the locations
-                if (event.locations != null) {
-                    event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
-                }
-                //Sanitize body content
-                if (event.body != null && event.body.content != null && event.body.content.length() > 0) {
-                    //Mark the event if there has been a change
-                    if (rooster == Rooster.ZERMELO) {
-                        event.subject += " [!]";
-                    }
-                    event.body.contentType = BodyType.HTML;
-                    event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
-                }
-                //Put the event in a hashtable for future reference
-                idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get().users(userId).events().buildRequest()), HttpMethod.POST, event), event);
-            }
-
-            final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get().batch().buildRequest().post(batchRequestContent);
-
-            if (batchResponseContent != null && batchResponseContent.responses != null) {
-                for (BatchResponseStep<JsonElement> batchResponseStep : batchResponseContent.responses) {
-                    if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
-                        //If event is created, put the response in the success flow file
-                        routeToSuccess(session, batchResponseStep.body);
-                        Event createdEvent = batchResponseStep.getDeserializedBody(Event.class);
-                        getLogger().info("Event for user {} with transactionId {} has been created. Event: {}", createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
-                        //Put the event in the distributed map cache
-                        putEventMapCache(idEvent.get(batchResponseStep.id), cache);
-
-                    } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
-                        //In case of the following error codes (429, 503, 504)
-                        //put the event from the hashtable in a flow file and route to retry
-                        final Event[] evtRetry = {idEvent.get(batchResponseStep.id)};
-
-                        String json = Objects.requireNonNull(msGraphClientAtomicRef.get().getSerializer()).serializeObject(evtRetry);
-
-                        FlowFile retryFLowFile = session.create();
-                        attributes.put("upn-name", userId);
-                        attributes.put("is-update", Boolean.toString(isUpdate));
-                        retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
-
-                        //Use the RetryFLow processor for setting the max retries
-                        final String attrNumRetries = requestFlowFile.getAttribute("flowfile.retries");
-                        final String numRetries = (attrNumRetries != null) ? attrNumRetries : "1";
-
-                        retryFLowFile = session.putAttribute(retryFLowFile, "flowfile.retries", numRetries);
-
-                        session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-                        session.transfer(retryFLowFile, REL_RETRY);
-                    } else if (batchResponseStep.status == HttpResponseCode.HTTP_CLIENT_ERROR) {
-                        //In case of an existing transactionId we want to route to failure and continue
-                        routeToError(session, batchResponseStep.body);
-                    } else {
-                        //This will throw a GraphServiceException or return Event
-                        batchResponseStep.getDeserializedBody(Event.class);
-                    }
-                }
-            } else {
-                getLogger().error("Batch request resulted in an error: ", batchResponseContent);
-            }
-        }
-    }
 
 
     @Override
@@ -209,7 +95,9 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
                 events = new Event[]{Objects.requireNonNull(msGraphClientAtomicRef.get().getSerializer()).deserializeObject(eventsJson, Event.class)};
             } else {
                 logger.error("Not valid JSON or empty.");
-                events = new Event[]{};
+                requestFlowFile = session.penalize(requestFlowFile);
+                session.transfer(requestFlowFile, REL_FAILURE);
+                return;
             }
 
             final List<Event> eventsSource = Arrays.asList(events);
@@ -228,17 +116,23 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
-            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
+            putBatchGraphEvents(session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
 
             //Are there any events that have changed?
             //If so patch them in the graph
             //Also undo changed graph events and delete events
-            patchGraphEvents(userId, eventsSource, eventsGraph, cache, session, isUpdate);
+            undoEvents(userId, eventsGraph, cache, session);
+            patchEvents(userId, eventsSource, eventsGraph, cache, session);
+
+            //If we are updating, we stop here
+            if (!isUpdate) {
+                deleteEvents(userId, eventsSource, eventsGraph, cache, session);
+            }
 
             // The original flow file hasn't changed
             session.transfer(requestFlowFile, REL_ORIGINAL);
 
-        } catch (GraphServiceException | IOException | NoSuchAlgorithmException | IllegalArgumentException | ParseException e) {
+        } catch (GraphServiceException | IOException | NoSuchAlgorithmException | IllegalArgumentException e) {
             //Error in performing request to Microsoft Graph
             //We can't recover from this so route to failure handler
             routeToFailure(requestFlowFile, logger, session, context, e);

@@ -1,0 +1,469 @@
+@startuml
+
+/' diagram meta data start
+config=CallConfiguration;
+{
+  "rootMethod": "org.apache.nifi.logging.ComponentLog#log(LogLevel,String,Object...)",
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": ""
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false // root node is included
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showMethodParametersTypes": false,
+    "showMethodParametersNames": false,
+    "showMethodReturnType": false,
+    "showPackageLevels": 2,
+    "showCallOrder": false,
+    "edgeMode": "MethodsOnly", // TypesOnly, MethodsOnly, TypesAndMethods, MethodsAndDirectTypeUsage
+    "showDetailedClassStructure": false
+  },
+  "rootClass": "org.apache.nifi.logging.ComponentLog"
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="LR"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_1411517106 { 
+   	label=apache
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_781648802 { 
+   	label=nifi
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1155855907 { 
+   	label=FetchFileTransfer
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   FetchFileTransfer470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="FetchFileTransfer
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1250929481 { 
+   	label=SimpleProcessLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   SimpleProcessLogger786985848XXXdebug117314406[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXerror117314406[
+	label="+ error()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXerror614054138[
+	label="+ error()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXinfo117314406[
+	label="+ info()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXlog907761562[
+	label="+ log()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXtrace117314406[
+	label="+ trace()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXwarn117314406[
+	label="+ warn()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+SimpleProcessLogger786985848XXXwarn614054138[
+	label="+ warn()"
+	style=filled
+	fillcolor=white
+	tooltip="SimpleProcessLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1333728902 { 
+   	label=AbstractProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractProcessor786985848XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractProcessor786985848XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. In the absence of the {@link org.apache.nifi.annotation.behavior.TriggerSerially} annotation,&#10;  this method may be called concurrently from different threads.&#10;  When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSession}, which&#10;  can be used for accessing FlowFiles, etc.&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate, as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1534396166 { 
+   	label=NopComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   NopComponentLog832281502XXXdebug117314406[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="NopComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+
+NopComponentLog832281502XXXlog907761562[
+	label="+ log()"
+	style=filled
+	fillcolor=white
+	tooltip="NopComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1684153142 { 
+   	label=StandardLogRepository
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardLogRepository1292167443XXXaddLogMessage907761562[
+	label="+ addLogMessage()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardLogRepository
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1708012223 { 
+   	label=CapturingLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   CapturingLogger306090332XXXdebug658265366[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="CapturingLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1819165116 { 
+   	label=PutBigQueryStreaming
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   PutBigQueryStreaming1490392181XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="PutBigQueryStreaming
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1921211216 { 
+   	label=ComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ComponentLog978875333XXXlog1924207306[
+	label="+ log()"
+	style=filled
+	fillcolor=white
+	tooltip="ComponentLog
+
+null"
+	penwidth=4
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2048858659 { 
+   	label=MockComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MockComponentLog306090332XXXdebug117314406[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+
+MockComponentLog306090332XXXlog907761562[
+	label="+ log()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLog
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2111402520 { 
+   	label=FetchFile
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   FetchFile470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="FetchFile
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_219057026 { 
+   	label=TerminationAwareLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TerminationAwareLogger1158014602XXXdebug117314406[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="TerminationAwareLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+TerminationAwareLogger1158014602XXXlog907761562[
+	label="+ log()"
+	style=filled
+	fillcolor=white
+	tooltip="TerminationAwareLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_492547111 { 
+   	label=MockComponentLogger
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   MockComponentLogger305847012XXXdebug117314406[
+	label="+ debug()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLogger
+
+null"
+	fontcolor=darkgreen
+];
+
+MockComponentLogger305847012XXXlog907761562[
+	label="+ log()"
+	style=filled
+	fillcolor=white
+	tooltip="MockComponentLogger
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_756039764 { 
+   	label=RetryFlowFile
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   RetryFlowFile470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="RetryFlowFile
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+
+'edges    
+AbstractProcessor786985848XXXonTrigger1421322213 -> FetchFile470851760XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger302525551 -> AbstractProcessor786985848XXXonTrigger1421322213;
+ComponentLog978875333XXXlog1924207306 -> MockComponentLog306090332XXXlog907761562;
+ComponentLog978875333XXXlog1924207306 -> MockComponentLogger305847012XXXlog907761562;
+ComponentLog978875333XXXlog1924207306 -> NopComponentLog832281502XXXlog907761562;
+ComponentLog978875333XXXlog1924207306 -> SimpleProcessLogger786985848XXXlog907761562;
+ComponentLog978875333XXXlog1924207306 -> TerminationAwareLogger1158014602XXXlog907761562;
+FetchFile470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXlog1924207306;
+FetchFileTransfer470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXlog1924207306;
+MockComponentLog306090332XXXdebug117314406 -> CapturingLogger306090332XXXdebug658265366;
+PutBigQueryStreaming1490392181XXXonTrigger1421322213 -> ComponentLog978875333XXXlog1924207306;
+RetryFlowFile470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXlog1924207306;
+SimpleProcessLogger786985848XXXdebug117314406 -> StandardLogRepository1292167443XXXaddLogMessage907761562;
+SimpleProcessLogger786985848XXXerror117314406 -> SimpleProcessLogger786985848XXXerror614054138;
+SimpleProcessLogger786985848XXXlog907761562 -> SimpleProcessLogger786985848XXXdebug117314406;
+SimpleProcessLogger786985848XXXlog907761562 -> SimpleProcessLogger786985848XXXerror117314406;
+SimpleProcessLogger786985848XXXlog907761562 -> SimpleProcessLogger786985848XXXinfo117314406;
+SimpleProcessLogger786985848XXXlog907761562 -> SimpleProcessLogger786985848XXXtrace117314406;
+SimpleProcessLogger786985848XXXlog907761562 -> SimpleProcessLogger786985848XXXwarn117314406;
+SimpleProcessLogger786985848XXXwarn117314406 -> SimpleProcessLogger786985848XXXwarn614054138;
+TerminationAwareLogger1158014602XXXlog907761562 -> ComponentLog978875333XXXlog1924207306;
+TerminationAwareLogger1158014602XXXlog907761562 -> MockComponentLog306090332XXXdebug117314406;
+TerminationAwareLogger1158014602XXXlog907761562 -> MockComponentLogger305847012XXXdebug117314406;
+TerminationAwareLogger1158014602XXXlog907761562 -> NopComponentLog832281502XXXdebug117314406;
+TerminationAwareLogger1158014602XXXlog907761562 -> SimpleProcessLogger786985848XXXdebug117314406;
+TerminationAwareLogger1158014602XXXlog907761562 -> TerminationAwareLogger1158014602XXXdebug117314406;
+    
+}
+@enduml

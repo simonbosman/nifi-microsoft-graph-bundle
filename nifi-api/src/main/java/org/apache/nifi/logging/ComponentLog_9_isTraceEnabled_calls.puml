@@ -1,0 +1,369 @@
+@startuml
+
+/' diagram meta data start
+config=CallConfiguration;
+{
+  "rootMethod": "org.apache.nifi.logging.ComponentLog#isTraceEnabled()",
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": ""
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false // root node is included
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showMethodParametersTypes": false,
+    "showMethodParametersNames": false,
+    "showMethodReturnType": false,
+    "showPackageLevels": 2,
+    "showCallOrder": false,
+    "edgeMode": "MethodsOnly", // TypesOnly, MethodsOnly, TypesAndMethods, MethodsAndDirectTypeUsage
+    "showDetailedClassStructure": false
+  },
+  "rootClass": "org.apache.nifi.logging.ComponentLog"
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="LR"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_1411517106 { 
+   	label=apache
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_781648802 { 
+   	label=nifi
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1163379933 { 
+   	label=StandardSocketChannelHandler
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardSocketChannelHandler889177880XXXrun0[
+	label="+ run()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardSocketChannelHandler
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1298576416 { 
+   	label=SSLSocketChannelHandler
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   SSLSocketChannelHandler889177880XXXrun0[
+	label="+ run()"
+	style=filled
+	fillcolor=white
+	tooltip="SSLSocketChannelHandler
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1333728902 { 
+   	label=AbstractProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractProcessor786985848XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1336242094 { 
+   	label=TimingInfo
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TimingInfo1456223176XXXaccept695942502[
+	label="+ accept()"
+	style=filled
+	fillcolor=white
+	tooltip="TimingInfo
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1456223176 { 
+   	label=ListFile
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ListFile470851760XXXonScheduled135384992[
+	label="+ onScheduled()"
+	style=filled
+	fillcolor=white
+	tooltip="ListFile
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1865804362 { 
+   	label=LogAttribute
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   LogAttribute470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="LogAttribute
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1921211216 { 
+   	label=ComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ComponentLog978875333XXXisTraceEnabled0[
+	label="+ isTraceEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="ComponentLog
+
+null"
+	penwidth=4
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_2038930503 { 
+   	label=RollingMetricPerformanceTracker
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   RollingMetricPerformanceTracker1456223176XXXacceptOperation636727140[
+	label="+ acceptOperation()"
+	style=filled
+	fillcolor=white
+	tooltip="RollingMetricPerformanceTracker
+
+null"
+	fontcolor=darkgreen
+];
+
+RollingMetricPerformanceTracker1456223176XXXcompleteOperation2145352657[
+	label="+ completeOperation()"
+	style=filled
+	fillcolor=white
+	tooltip="RollingMetricPerformanceTracker
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_320771679 { 
+   	label=LogMessage
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   LogMessage470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="LogMessage
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_69112404 { 
+   	label=BeatsDecoder
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   BeatsDecoder178469449XXXprocess3039496[
+	label="+ process()"
+	style=filled
+	fillcolor=white
+	tooltip="BeatsDecoder
+
+&#10;  Process the next byte from the channel, updating the builder and state accordingly.&#10; &#10;  @param currByte the next byte to process&#10;  @preturn true if a frame is ready to be retrieved, false otherwise&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_797583082 { 
+   	label=TailFile
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   TailFile470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="TailFile
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_833282584 { 
+   	label=AbstractListProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractListProcessor1549696020XXXlistByNoTracking1421322213[
+	label="+ listByNoTracking()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXlistByTimeWindow1421322213[
+	label="+ listByTimeWindow()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXlistByTrackingTimestamps1421322213[
+	label="+ listByTrackingTimestamps()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractListProcessor1549696020XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractListProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+
+'edges    
+AbstractListProcessor1549696020XXXlistByNoTracking1421322213 -> RollingMetricPerformanceTracker1456223176XXXcompleteOperation2145352657;
+AbstractListProcessor1549696020XXXlistByNoTracking1421322213 -> TimingInfo1456223176XXXaccept695942502;
+AbstractListProcessor1549696020XXXlistByTimeWindow1421322213 -> ComponentLog978875333XXXisTraceEnabled0;
+AbstractListProcessor1549696020XXXlistByTimeWindow1421322213 -> RollingMetricPerformanceTracker1456223176XXXcompleteOperation2145352657;
+AbstractListProcessor1549696020XXXlistByTimeWindow1421322213 -> TimingInfo1456223176XXXaccept695942502;
+AbstractListProcessor1549696020XXXlistByTrackingTimestamps1421322213 -> RollingMetricPerformanceTracker1456223176XXXcompleteOperation2145352657;
+AbstractListProcessor1549696020XXXlistByTrackingTimestamps1421322213 -> TimingInfo1456223176XXXaccept695942502;
+AbstractListProcessor1549696020XXXonTrigger1421322213 -> AbstractListProcessor1549696020XXXlistByTimeWindow1421322213;
+AbstractListProcessor1549696020XXXonTrigger1421322213 -> RollingMetricPerformanceTracker1456223176XXXcompleteOperation2145352657;
+AbstractProcessor786985848XXXonTrigger1421322213 -> AbstractListProcessor1549696020XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> LogAttribute470851760XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> LogMessage470851760XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> TailFile470851760XXXonTrigger1421322213;
+BeatsDecoder178469449XXXprocess3039496 -> ComponentLog978875333XXXisTraceEnabled0;
+ListFile470851760XXXonScheduled135384992 -> TimingInfo1456223176XXXaccept695942502;
+LogAttribute470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXisTraceEnabled0;
+LogMessage470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXisTraceEnabled0;
+RollingMetricPerformanceTracker1456223176XXXacceptOperation636727140 -> TimingInfo1456223176XXXaccept695942502;
+RollingMetricPerformanceTracker1456223176XXXcompleteOperation2145352657 -> TimingInfo1456223176XXXaccept695942502;
+SSLSocketChannelHandler889177880XXXrun0 -> BeatsDecoder178469449XXXprocess3039496;
+StandardSocketChannelHandler889177880XXXrun0 -> BeatsDecoder178469449XXXprocess3039496;
+TailFile470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXisTraceEnabled0;
+TimingInfo1456223176XXXaccept695942502 -> ComponentLog978875333XXXisTraceEnabled0;
+    
+}
+@enduml

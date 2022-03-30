@@ -1,0 +1,398 @@
+@startuml
+
+/' diagram meta data start
+config=CallConfiguration;
+{
+  "rootMethod": "org.apache.nifi.logging.ComponentLog#isWarnEnabled()",
+  "projectClassification": {
+    "searchMode": "OpenProject", // OpenProject, AllProjects
+    "includedProjects": "",
+    "pathEndKeywords": "*.impl",
+    "isClientPath": "",
+    "isClientName": "",
+    "isTestPath": "",
+    "isTestName": "",
+    "isMappingPath": "",
+    "isMappingName": "",
+    "isDataAccessPath": "",
+    "isDataAccessName": "",
+    "isDataStructurePath": "",
+    "isDataStructureName": "",
+    "isInterfaceStructuresPath": "",
+    "isInterfaceStructuresName": "",
+    "isEntryPointPath": "",
+    "isEntryPointName": ""
+  },
+  "graphRestriction": {
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "removeByInheritance": "", // inheritance/annotation based filtering is done in a second step
+    "removeByAnnotation": "",
+    "removeByClassPackage": "", // cleanup the graph after inheritance/annotation based filtering is done
+    "removeByClassName": "",
+    "cutMappings": false,
+    "cutEnum": true,
+    "cutTests": true,
+    "cutClient": true,
+    "cutDataAccess": true,
+    "cutInterfaceStructures": true,
+    "cutDataStructures": true,
+    "cutGetterAndSetter": true,
+    "cutConstructors": true
+  },
+  "graphTraversal": {
+    "forwardDepth": 3,
+    "backwardDepth": 3,
+    "classPackageExcludeFilter": "",
+    "classPackageIncludeFilter": "",
+    "classNameExcludeFilter": "",
+    "classNameIncludeFilter": "",
+    "methodNameExcludeFilter": "",
+    "methodNameIncludeFilter": "",
+    "hideMappings": false,
+    "hideDataStructures": false,
+    "hidePrivateMethods": true,
+    "hideInterfaceCalls": true, // indirection: implementation -> interface (is hidden) -> implementation
+    "onlyShowApplicationEntryPoints": false // root node is included
+  },
+  "details": {
+    "aggregation": "GroupByClass", // ByClass, GroupByClass, None
+    "showMethodParametersTypes": false,
+    "showMethodParametersNames": false,
+    "showMethodReturnType": false,
+    "showPackageLevels": 2,
+    "showCallOrder": false,
+    "edgeMode": "MethodsOnly", // TypesOnly, MethodsOnly, TypesAndMethods, MethodsAndDirectTypeUsage
+    "showDetailedClassStructure": false
+  },
+  "rootClass": "org.apache.nifi.logging.ComponentLog"
+}
+diagram meta data end '/
+
+
+
+digraph g {
+    rankdir="LR"
+    splines=polyline
+    
+
+'nodes 
+subgraph cluster_1411517106 { 
+   	label=apache
+	labeljust=l
+	fillcolor="#ececec"
+	style=filled
+   
+   subgraph cluster_781648802 { 
+   	label=nifi
+	labeljust=l
+	fillcolor="#d8d8d8"
+	style=filled
+   
+   subgraph cluster_1008684560 { 
+   	label=StandardProcessSession
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardProcessSession1624409406XXXcommit0[
+	label="+ commit()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardProcessSession
+
+&#10;  \<p\>&#10;  Commits the current session ensuring all operations against FlowFiles&#10;  within this session are atomically persisted. All FlowFiles operated on&#10;  within this session must be accounted for by transfer or removal or the&#10;  commit will fail.\</p\>&#10; &#10;  \<p\>&#10;  As soon as the commit completes the session is again ready to be used\</p\>&#10; &#10;  @throws IllegalStateException if detected that this method is being&#10;  called from within a callback of another method in this session.&#10;  @throws FlowFileHandlingException if not all FlowFiles acted upon within&#10;  this session are accounted for by user code such that they have a&#10;  transfer identified or where marked for removal. Automated rollback&#10;  occurs.&#10;  @throws ProcessException if some general fault occurs while persisting&#10;  the session. Initiates automatic rollback. The root cause can be obtained&#10;  via \<code\>Exception.getCause()\</code\>&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1222997408 { 
+   	label=AbstractMQTTProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractMQTTProcessor35910014XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractMQTTProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractMQTTProcessor35910014XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractMQTTProcessor
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. In the absence of the {@link org.apache.nifi.annotation.behavior.TriggerSerially} annotation,&#10;  this method may be called concurrently from different threads.&#10;  When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSession}, which&#10;  can be used for accessing FlowFiles, etc.&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate, as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1247026487 { 
+   	label=ConsumeMQTT
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ConsumeMQTT1617610039XXXonStopped135384992[
+	label="+ onStopped()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeMQTT
+
+null"
+	fontcolor=darkgreen
+];
+
+ConsumeMQTT1617610039XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeMQTT
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1333728902 { 
+   	label=AbstractProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   AbstractProcessor786985848XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+null"
+	fontcolor=darkgreen
+];
+
+AbstractProcessor786985848XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="AbstractProcessor
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. In the absence of the {@link org.apache.nifi.annotation.behavior.TriggerSerially} annotation,&#10;  this method may be called concurrently from different threads.&#10;  When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSession}, which&#10;  can be used for accessing FlowFiles, etc.&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate, as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1630245760 { 
+   	label=InvokeScriptedProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   InvokeScriptedProcessor96134626XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="InvokeScriptedProcessor
+
+&#10;  Invokes the onTrigger() method of the scripted processor. If the script&#10;  failed to reload, the processor yields until the script can be reloaded&#10;  successfully. If the scripted processor's onTrigger() method throws an&#10;  exception, a ProcessException will be thrown. If no processor is defined&#10;  by the script, an error is logged with the system.&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSessionFactory},&#10;  which can be used for accessing FlowFiles, etc.&#10;  @throws ProcessException if the scripted processor's onTrigger() method&#10;  throws an exception&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1755905334 { 
+   	label=EventDrivenTask
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   EventDrivenTask1117794091XXXrun0[
+	label="+ run()"
+	style=filled
+	fillcolor=white
+	tooltip="EventDrivenTask
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1865804362 { 
+   	label=LogAttribute
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   LogAttribute470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="LogAttribute
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1887393631 { 
+   	label=StandardProcessorNode
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardProcessorNode1158014602XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardProcessorNode
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. This method may be called concurrently from different&#10;  threads. When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  \<p\>&#10;  The processor may commit, roll back, or allow the framework to&#10;  automatically manage the session. If the sessions are to be managed by&#10;  the framework (recommended) then what it will do depends on several&#10;  factors. If the method call returns due to an exception then the session&#10;  will be rolled back. If the method returns normally then the session will&#10;  be committed or the framework may use the session again for another&#10;  processor down stream\</p\>&#10; &#10;  @param context in which the component is triggered&#10;  @param sessionFactory used to generate {@link ProcessSession}s to use for&#10;  operating on flow files within the repository&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_1921211216 { 
+   	label=ComponentLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ComponentLog978875333XXXisWarnEnabled0[
+	label="+ isWarnEnabled()"
+	style=filled
+	fillcolor=white
+	tooltip="ComponentLog
+
+null"
+	penwidth=4
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_319221453 { 
+   	label=ConsumeWindowsEventLog
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ConsumeWindowsEventLog136919790XXXonTrigger302525551[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeWindowsEventLog
+
+&#10;  \<p\>&#10;  The method called when this processor is triggered to operate by the&#10;  controller. In the absence of the {@link org.apache.nifi.annotation.behavior.TriggerSerially} annotation,&#10;  this method may be called concurrently from different threads.&#10;  When this method is called depends on how this processor is&#10;  configured within a controller to be triggered (timing or event&#10;  based).\</p\>&#10; &#10;  @param context provides access to convenience methods for obtaining&#10;  property values, delaying the scheduling of the processor, provides&#10;  access to Controller Services, etc.&#10;  @param sessionFactory provides access to a {@link ProcessSession}, which&#10;  can be used for accessing FlowFiles, etc.&#10; &#10;  @throws ProcessException if processing did not complete normally though&#10;  indicates the problem is an understood potential outcome of processing.&#10;  The controller/caller will handle these exceptions gracefully such as&#10;  logging, etc.. If another type of exception is allowed to propagate the&#10;  controller may no longer trigger this processor to operate, as this would&#10;  indicate a probable coding defect.&#10; "
+	fontcolor=darkgreen
+];
+
+ConsumeWindowsEventLog136919790XXXstop0[
+	label="+ stop()"
+	style=filled
+	fillcolor=white
+	tooltip="ConsumeWindowsEventLog
+
+&#10;  Cleanup&#10; "
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_320771679 { 
+   	label=LogMessage
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   LogMessage470851760XXXonTrigger1421322213[
+	label="+ onTrigger()"
+	style=filled
+	fillcolor=white
+	tooltip="LogMessage
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_481121295 { 
+   	label=ConnectableTask
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   ConnectableTask1248989462XXXinvoke0[
+	label="+ invoke()"
+	style=filled
+	fillcolor=white
+	tooltip="ConnectableTask
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_516018992 { 
+   	label=RunProcessor
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   RunProcessor811764965XXXcall0[
+	label="+ call()"
+	style=filled
+	fillcolor=white
+	tooltip="RunProcessor
+
+null"
+	fontcolor=darkgreen
+];
+} 
+
+subgraph cluster_58105479 { 
+   	label=StandardStatelessFlow
+	labeljust=l
+	fillcolor=white
+	style=filled
+   
+   StandardStatelessFlow35370956XXXtrigger0[
+	label="+ trigger()"
+	style=filled
+	fillcolor=white
+	tooltip="StandardStatelessFlow
+
+null"
+	fontcolor=darkgreen
+];
+} 
+} 
+} 
+
+'edges    
+AbstractMQTTProcessor35910014XXXonTrigger1421322213 -> ConsumeMQTT1617610039XXXonTrigger1421322213;
+AbstractMQTTProcessor35910014XXXonTrigger302525551 -> AbstractMQTTProcessor35910014XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> LogAttribute470851760XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger1421322213 -> LogMessage470851760XXXonTrigger1421322213;
+AbstractProcessor786985848XXXonTrigger302525551 -> AbstractProcessor786985848XXXonTrigger1421322213;
+ConnectableTask1248989462XXXinvoke0 -> StandardProcessorNode1158014602XXXonTrigger302525551;
+ConsumeMQTT1617610039XXXonStopped135384992 -> ComponentLog978875333XXXisWarnEnabled0;
+ConsumeMQTT1617610039XXXonTrigger1421322213 -> ComponentLog978875333XXXisWarnEnabled0;
+ConsumeWindowsEventLog136919790XXXonTrigger302525551 -> ComponentLog978875333XXXisWarnEnabled0;
+ConsumeWindowsEventLog136919790XXXstop0 -> ComponentLog978875333XXXisWarnEnabled0;
+EventDrivenTask1117794091XXXrun0 -> StandardProcessorNode1158014602XXXonTrigger302525551;
+InvokeScriptedProcessor96134626XXXonTrigger302525551 -> ConsumeWindowsEventLog136919790XXXonTrigger302525551;
+LogAttribute470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXisWarnEnabled0;
+LogMessage470851760XXXonTrigger1421322213 -> ComponentLog978875333XXXisWarnEnabled0;
+RunProcessor811764965XXXcall0 -> ConsumeWindowsEventLog136919790XXXonTrigger302525551;
+StandardProcessSession1624409406XXXcommit0 -> StandardProcessorNode1158014602XXXonTrigger302525551;
+StandardProcessorNode1158014602XXXonTrigger302525551 -> ConsumeWindowsEventLog136919790XXXonTrigger302525551;
+StandardStatelessFlow35370956XXXtrigger0 -> StandardProcessorNode1158014602XXXonTrigger302525551;
+    
+}
+@enduml
