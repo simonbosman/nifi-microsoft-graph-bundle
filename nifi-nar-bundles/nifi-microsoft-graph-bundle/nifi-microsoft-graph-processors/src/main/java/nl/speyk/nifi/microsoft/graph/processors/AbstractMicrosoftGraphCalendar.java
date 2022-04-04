@@ -19,6 +19,7 @@ import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.serializer.ISerializer;
 import nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils;
 import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
+import nl.speyk.nifi.microsoft.graph.processors.utils.Zermelo;
 import okhttp3.Request;
 import org.apache.commons.io.IOUtils;
 import org.apache.nifi.annotation.behavior.ReadsAttributes;
@@ -273,14 +274,21 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get().batch().buildRequest().post(batchRequestContent);
 
             if (batchResponseContent != null && batchResponseContent.responses != null) {
+                Zermelo zermelo = new Zermelo();
                 for (BatchResponseStep<JsonElement> batchResponseStep : batchResponseContent.responses) {
                     if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
                         //If event is created, put the response in the success flow file
                         routeToSuccess(session, batchResponseStep.body);
                         Event createdEvent = batchResponseStep.getDeserializedBody(Event.class);
                         getLogger().info("Event for user {} with transactionId {} has been created. Event: {}", createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
+                        //Get original from hashtable, id is used for Zermelo write back
+                        Event orgEvent = idEvent.get(batchResponseStep.id);
+                        //Write back online teams url in Zermelo
+                        if (rooster == Rooster.ZERMELO) {
+                            zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeetingUrl);
+                        }
                         //Put the event in the distributed map cache
-                        putEventMapCache(idEvent.get(batchResponseStep.id), cache);
+                        putEventMapCache(orgEvent, cache);
 
                     } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
                         //In case of the following error codes (429, 503, 504)
