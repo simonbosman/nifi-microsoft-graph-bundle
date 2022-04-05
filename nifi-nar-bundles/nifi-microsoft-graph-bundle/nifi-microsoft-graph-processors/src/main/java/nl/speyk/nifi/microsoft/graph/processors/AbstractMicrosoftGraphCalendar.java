@@ -284,8 +284,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                         //Get original from hashtable, id is used for Zermelo write back
                         Event orgEvent = idEvent.get(batchResponseStep.id);
                         //Write back online teams url in Zermelo
-                        if (rooster == Rooster.ZERMELO) {
-                            zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeetingUrl);
+                        if (rooster == Rooster.ZERMELO && createdEvent.onlineMeeting != null) {
+                            zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeeting.joinUrl);
                         }
                         //Put the event in the distributed map cache
                         putEventMapCache(orgEvent, cache);

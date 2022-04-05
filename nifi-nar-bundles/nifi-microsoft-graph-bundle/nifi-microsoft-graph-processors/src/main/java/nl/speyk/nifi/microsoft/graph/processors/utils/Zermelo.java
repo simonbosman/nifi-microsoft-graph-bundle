@@ -1,6 +1,5 @@
 package nl.speyk.nifi.microsoft.graph.processors.utils;
 
-
 import okhttp3.*;
 
 import java.io.IOException;
