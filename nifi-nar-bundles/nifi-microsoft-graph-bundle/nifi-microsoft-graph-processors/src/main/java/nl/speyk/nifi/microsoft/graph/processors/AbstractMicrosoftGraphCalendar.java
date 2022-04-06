@@ -18,8 +18,8 @@ import com.microsoft.graph.requests.EventCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.serializer.ISerializer;
 import nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils;
-import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import nl.speyk.nifi.microsoft.graph.processors.utils.Zermelo;
+import nl.speyk.nifi.microsoft.graph.services.api.MicrosoftGraphCredentialService;
 import okhttp3.Request;
 import org.apache.commons.io.IOUtils;
 import org.apache.nifi.annotation.behavior.ReadsAttributes;
@@ -69,8 +69,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     protected final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
     protected final Serializer<String> keySerializer = new CalendarUtils.StringSerializer();
     protected final Serializer<byte[]> valueSerializer = new CalendarUtils.CacheValueSerializer();
-    protected Rooster rooster = Rooster.UNKNOWN;
     private final Deserializer<byte[]> valueDeserializer = new CalendarUtils.CacheValueDeserializer();
+    protected Rooster rooster = Rooster.UNKNOWN;
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
 
@@ -115,14 +115,14 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             sb.append(dtStart.format(dtFormatter));
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
-        }
-        else {
+        } else {
             if (evt.start != null) sb.append(evt.start.dateTime);
             if (evt.end != null) sb.append(evt.end.dateTime);
         }
         sb.append(evt.subject);
         if (evt.showAs != null) sb.append(evt.showAs.name());
-        if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty()) sb.append(evt.location.displayName);
+        if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty())
+            sb.append(evt.location.displayName);
         else if (evt.locations != null && evt.locations.size() > 0) {
             String joinedLocations = evt.locations.stream().map((loc) -> loc.displayName).sorted().collect(Collectors.joining("; "));
             sb.append(joinedLocations);
@@ -205,7 +205,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         return eventsSource.stream().filter(event -> difference.contains(event.transactionId)).collect(Collectors.toList());
     }
 
-    protected void putEventMapCache(Event evt, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException{
+    protected void putEventMapCache(Event evt, DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException {
         final Consumer<String> logError = (transactionId) -> {
             getLogger().error("Could not put hashed/full event: %s in the distributed map cache.", transactionId);
         };
@@ -228,11 +228,16 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         cache.put(PARTITION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer, valueSerializer);
     }
 
-    protected void putBatchGraphEvents(final ProcessSession session, List<Event> events, String userId, boolean isUpdate, final FlowFile requestFlowFile, final DistributedMapCacheClient cache) throws ClientException, IOException, NoSuchAlgorithmException {
+    protected void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events, String userId, boolean isUpdate, final FlowFile requestFlowFile, final DistributedMapCacheClient cache) throws ClientException, IOException, NoSuchAlgorithmException {
         // Attributes for success and retry flow files
         final Map<String, String> attributes = new Hashtable<>();
         attributes.put("Content-Type", "application/json; charset=utf-8");
         attributes.put("mime.type", "application/json");
+
+        //Used when updating appointment instance in Zermelo with a teams link
+        String url = context.getProperty(GRAPH_ZERMELO_URL).getValue();
+        String bearer = context.getProperty(GRAPH_ZERMELO_TOKEN).getValue();
+        final Zermelo zermelo = new Zermelo(url, bearer);
 
         // error codes for retry
         final int[] errorCodes = {GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE, GRAPH_HTTP_GATEWAY_TIMEOUT};
@@ -274,7 +279,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             final BatchResponseContent batchResponseContent = msGraphClientAtomicRef.get().batch().buildRequest().post(batchRequestContent);
 
             if (batchResponseContent != null && batchResponseContent.responses != null) {
-                Zermelo zermelo = new Zermelo();
                 for (BatchResponseStep<JsonElement> batchResponseStep : batchResponseContent.responses) {
                     if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
                         //If event is created, put the response in the success flow file
@@ -404,7 +408,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
             //We don't care about tentative events
             assert evt.showAs != null;
-            if (evt.showAs.name().equals("TENTATIVE")) continue;;
+            if (evt.showAs.name().equals("TENTATIVE")) continue;
+            ;
 
             try {
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
@@ -525,7 +530,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 GRAPH_RS,
                 GRAPH_USER_ID,
                 GRAPH_IS_UPDATE,
-                GRAPH_REBUILD_MAP_CACHE));
+                GRAPH_REBUILD_MAP_CACHE,
+                GRAPH_ZERMELO_URL,
+                GRAPH_ZERMELO_TOKEN));
     }
 
     @Override

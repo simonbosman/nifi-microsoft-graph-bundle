@@ -116,7 +116,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             final List<Event> eventsToGraph = eventsDiff(eventsSource, eventsGraph);
 
             //Put the events in batches in the Microsoft Graph
-            putBatchGraphEvents(session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
+            putBatchGraphEvents(context, session, eventsToGraph, userId, isUpdate, requestFlowFile, cache);
 
             //Are there any events that have changed?
             //If so patch them in the graph

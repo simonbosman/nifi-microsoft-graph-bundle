@@ -72,6 +72,23 @@ public final class CalendarUtils {
             .required(true)
             .build();
 
+    public static final PropertyDescriptor GRAPH_ZERMELO_URL = new PropertyDescriptor.Builder()
+            .name("mg-cs-zermelo-url")
+            .displayName("Zermelo rest api endpoint")
+            .description("Rest api endpoint used for setting the teams link of an appointment")
+            .defaultValue("https://{naam scbool}.zportal.nl//api/v3/appointments/")
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .required(false)
+            .build();
+
+    public static final PropertyDescriptor GRAPH_ZERMELO_TOKEN = new PropertyDescriptor.Builder()
+            .name("mg-cs-zermelo-token")
+            .displayName("Zermelo oauth token")
+            .description("Rest api bearer token")
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .required(false)
+            .build();
+
     // relationships
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
