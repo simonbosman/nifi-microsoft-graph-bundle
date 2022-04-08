@@ -52,6 +52,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
@@ -374,7 +376,15 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             .filter(event -> event.transactionId != null)
                             .filter(event -> event.transactionId.equals(evt.transactionId))
                             .findAny().get();
-                    //TODO: When a team link has been created, preserve this link
+                    //If there is a teams link in the description, we want to keep it
+                    //Add the body content to the existing body content
+                    final String regex = "Microsoft Teams meeting";
+                    final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
+                    final Matcher matcher = pattern.matcher(eventToPatch.bodyPreview);
+                    boolean isTeamLink = matcher.find();
+                    if (isTeamLink) {
+                        evt.body.content += eventToPatch.body.content;
+                    }
                     routeToSuccess(session, msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(Objects.requireNonNull(eventToPatch.id))
