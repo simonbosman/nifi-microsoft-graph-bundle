@@ -378,7 +378,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             .findAny().get();
                     //If there is a teams link in the description, we want to keep it
                     //Add the body content to the existing body content
-                    final String regex = "Microsoft Teams meeting";
+                    final String regex = "teams.microsoft.com";
                     final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
                     final Matcher matcher = pattern.matcher(eventToPatch.bodyPreview);
                     boolean isTeamLink = matcher.find();
