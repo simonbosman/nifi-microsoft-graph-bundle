@@ -72,6 +72,15 @@ public final class CalendarUtils {
             .required(true)
             .build();
 
+    public static final PropertyDescriptor GRAPH_IS_DELETE = new PropertyDescriptor.Builder()
+            .name("mg-cs-is-delete")
+            .displayName("Delete events, default is tentative")
+            .description("Should events be deleted? Default is make them tentative.")
+            .allowableValues("true", "false")
+            .defaultValue("false")
+            .required(true)
+            .build();
+
     public static final PropertyDescriptor GRAPH_ZERMELO_URL = new PropertyDescriptor.Builder()
             .name("mg-cs-zermelo-url")
             .displayName("Zermelo rest api endpoint")

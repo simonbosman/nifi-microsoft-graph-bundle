@@ -126,7 +126,13 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
 
             //If we are updating, we stop here
             if (!isUpdate) {
-                deleteEvents(userId, eventsSource, eventsGraph, cache, session);
+                //Do we want to delete an event, or put it on tentative?
+                if (context.getProperty(GRAPH_IS_DELETE).asBoolean()) {
+                    deleteEventsForReal(userId, eventsSource, eventsGraph, cache, session);
+                }
+                else {
+                    deleteEvents(userId, eventsSource, eventsGraph, cache, session);
+                }
             }
 
             // The original flow file hasn't changed

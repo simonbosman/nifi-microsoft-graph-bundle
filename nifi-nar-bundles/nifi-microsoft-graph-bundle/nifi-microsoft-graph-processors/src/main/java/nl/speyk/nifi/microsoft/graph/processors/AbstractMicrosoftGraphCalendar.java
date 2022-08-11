@@ -419,7 +419,6 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             //We don't care about tentative events
             assert evt.showAs != null;
             if (evt.showAs.name().equals("TENTATIVE")) continue;
-            ;
 
             try {
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
@@ -471,13 +470,41 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
     }
 
+    protected void deleteEventsForReal(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
+        throws NoSuchAlgorithmException, IOException {
+        //Is the set of events greater in the graph than in source?
+        //Delete the event in the graph
+        List<Event> eventsTotDelete = eventsDiff(eventsGraph, eventsSource);
+        for (Event evt: eventsTotDelete) {
+            //Is the event managed by DIS? if not skip
+            if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
+                continue;
+            try {
+                routeToSuccess(session, msGraphClientAtomicRef.get()
+                        .users(userId)
+                        .events(Objects.requireNonNull(evt.id))
+                        .buildRequest()
+                        .delete());
+
+                getLogger().info("Event for user {} with transactionId {} has been deleted. Event Source: {}",
+                        userId, evt.transactionId, eventToString(evt, false));
+
+                //delete event from the distributed map cache
+                cache.remove(evt.transactionId, keySerializer);
+
+            } catch (NoSuchElementException e) {
+                getLogger().error(String.format("Graph event with transactionId %s couldn't be deleted.", evt.transactionId));
+            }
+        }
+    }
+
     protected void deleteEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph, DistributedMapCacheClient cache, ProcessSession session)
             throws NoSuchAlgorithmException, IOException {
         //Is the set of events greater in the graph than in source?
         //Make event in the graph tentative
         List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
         for (Event evt : eventsToDelete) {
-            //Is the event managed by DIS? If not skip.
+            //Is the event managed by DIS? If not skip
             if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
                 continue;
             //Is the event already tentative?
@@ -539,6 +566,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 GRAPH_DISTRIBUTED_MAPCACHE,
                 GRAPH_RS,
                 GRAPH_USER_ID,
+                GRAPH_IS_DELETE,
                 GRAPH_IS_UPDATE,
                 GRAPH_REBUILD_MAP_CACHE,
                 GRAPH_ZERMELO_URL,

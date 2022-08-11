@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-public class TestInvokeMicrosoftGraphCalendar {
+public class  TestInvokeMicrosoftGraphCalendar {
 
     private TestRunner runner;
 
@@ -94,4 +94,6 @@ public class TestInvokeMicrosoftGraphCalendar {
         String resultValue = new String(runner.getContentAsByteArray(result));
         LOGGER.info("Json content is empty:  " + resultValue);
     }
+
+
 }
