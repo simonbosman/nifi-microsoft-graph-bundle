@@ -267,9 +267,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 }
                 //Sanitize body content
                 if (event.body != null && event.body.content != null && event.body.content.length() > 0) {
-                    //Mark the event if there has been a change
                     if (rooster == Rooster.ZERMELO) {
-                        event.subject += " [!]";
+                        event.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + event.subject;
+                        event.subject += context.getProperty(GRAPH_ZERMELO_POSTFIX).getValue();
                     }
                     event.body.contentType = BodyType.HTML;
                     event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
@@ -291,7 +291,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                         Event orgEvent = idEvent.get(batchResponseStep.id);
                         //Write back online teams url in Zermelo
                         if (rooster == Rooster.ZERMELO && createdEvent.onlineMeeting != null) {
-                            zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeeting.joinUrl);
+                            getLogger().info(zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeeting.joinUrl));
                         }
                         //Put the event in the distributed map cache
                         putEventMapCache(orgEvent, cache);
@@ -331,7 +331,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
 
-    protected void patchEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph,
+    protected void patchEvents(final ProcessContext context, String userId, List<Event> eventsSource, List<Event> eventsGraph,
                                DistributedMapCacheClient cache, ProcessSession session)
             throws NoSuchAlgorithmException, IOException {
 
@@ -355,7 +355,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
                 //Mark the event if there has been a notification
                 if (rooster == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
-                    evt.subject += " [!]";
+                    evt.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + evt.subject;
+                    evt.subject += context.getProperty(GRAPH_ZERMELO_POSTFIX).getValue();
                 }
 
                 //Compare hashes
@@ -570,7 +571,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 GRAPH_IS_UPDATE,
                 GRAPH_REBUILD_MAP_CACHE,
                 GRAPH_ZERMELO_URL,
-                GRAPH_ZERMELO_TOKEN));
+                GRAPH_ZERMELO_TOKEN,
+                GRAPH_ZERMELO_PREFIX,
+                GRAPH_ZERMELO_POSTFIX));
     }
 
     @Override

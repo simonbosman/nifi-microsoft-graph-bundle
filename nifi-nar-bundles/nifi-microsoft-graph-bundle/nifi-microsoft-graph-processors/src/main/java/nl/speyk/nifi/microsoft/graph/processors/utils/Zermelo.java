@@ -7,8 +7,8 @@ import java.io.IOException;
 public class Zermelo {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf8");
     final OkHttpClient client;
-    private String zermeloUrl;
-    private String bearerToken;
+    private final String zermeloUrl;
+    private final String bearerToken;
 
     private String appointmentJson(long id, String onlineLocationUrl) {
         return "{\"id\":  \"" + id + "\", \"onlineLocationUrl\": \"" + onlineLocationUrl + "\"}";

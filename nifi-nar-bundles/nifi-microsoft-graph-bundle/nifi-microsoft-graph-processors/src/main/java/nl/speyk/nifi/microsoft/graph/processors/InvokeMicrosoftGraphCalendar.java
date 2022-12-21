@@ -122,7 +122,7 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             //If so patch them in the graph
             //Also undo changed graph events and delete events
             undoEvents(userId, eventsGraph, cache, session);
-            patchEvents(userId, eventsSource, eventsGraph, cache, session);
+            patchEvents(context, userId, eventsSource, eventsGraph, cache, session);
 
             //If we are updating, we stop here
             if (!isUpdate) {

@@ -98,6 +98,23 @@ public final class CalendarUtils {
             .required(false)
             .build();
 
+    public static final PropertyDescriptor GRAPH_ZERMELO_PREFIX = new PropertyDescriptor.Builder()
+            .name("mg-cs-zermelo-prefix")
+            .displayName("Zermelo prefix")
+            .description("In case of a changed event, use this prefix")
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .required(false)
+            .build();
+
+    public static final PropertyDescriptor GRAPH_ZERMELO_POSTFIX = new PropertyDescriptor.Builder()
+            .name("mg-cs-zermelo-postfix")
+            .displayName("Zermelo postfix")
+            .description("In case of a changed event, use this postfix")
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .required(true)
+            .defaultValue(" [!]")
+            .build();
+
     // relationships
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
