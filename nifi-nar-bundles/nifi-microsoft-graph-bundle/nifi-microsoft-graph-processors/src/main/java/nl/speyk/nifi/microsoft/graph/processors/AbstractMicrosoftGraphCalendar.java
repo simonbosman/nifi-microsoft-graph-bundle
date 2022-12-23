@@ -268,7 +268,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 //Sanitize body content
                 if (event.body != null && event.body.content != null && event.body.content.length() > 0) {
                     if (rooster == Rooster.ZERMELO) {
-                        event.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + event.subject;
+                        if(!context.getProperty(GRAPH_ZERMELO_PREFIX).getValue().isEmpty()) {
+                            event.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + event.subject;
+                        }
                         event.subject += context.getProperty(GRAPH_ZERMELO_POSTFIX).getValue();
                     }
                     event.body.contentType = BodyType.HTML;
@@ -355,7 +357,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
                 //Mark the event if there has been a notification
                 if (rooster == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
-                    evt.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + evt.subject;
+                    if(!context.getProperty(GRAPH_ZERMELO_PREFIX).getValue().isEmpty()) {
+                        evt.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + evt.subject;
+                    }
                     evt.subject += context.getProperty(GRAPH_ZERMELO_POSTFIX).getValue();
                 }
 
