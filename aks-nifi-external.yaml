@@ -1,14 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: aks-nifi 
-  annotations:
-    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  name: aks-nifi-external 
 spec:
   type: LoadBalancer
   ports:
-    - name: gui
-      port: 8080
     - name: liveschedule
       port: 8000
   selector:
