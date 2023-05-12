@@ -53,9 +53,11 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         }
         final ComponentLog logger = getLogger();
         rooster = getRooster(context.getProperty(GRAPH_RS).getValue());
+        weeks_in_advance = context.getProperty(GRAPH_WEEKS_IN_ADVANCE).getValue();
         final boolean rebuildMapCache = context.getProperty(GRAPH_REBUILD_MAP_CACHE).asBoolean();
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile).getValue();
         final boolean isUpdate = Boolean.parseBoolean(context.getProperty(GRAPH_IS_UPDATE).evaluateAttributeExpressions(requestFlowFile).getValue());
+
 
         if (msGraphClientAtomicRef.get() == null) {
             logger.info("Microsoft Graph Client is not yet available.");

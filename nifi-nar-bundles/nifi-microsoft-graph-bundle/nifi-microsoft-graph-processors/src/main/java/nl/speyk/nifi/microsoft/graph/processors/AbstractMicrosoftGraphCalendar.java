@@ -72,6 +72,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     protected final Serializer<String> keySerializer = new CalendarUtils.StringSerializer();
     protected final Serializer<byte[]> valueSerializer = new CalendarUtils.CacheValueSerializer();
     private final Deserializer<byte[]> valueDeserializer = new CalendarUtils.CacheValueDeserializer();
+    protected String weeks_in_advance;
     protected Rooster rooster = Rooster.UNKNOWN;
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
@@ -160,7 +161,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     protected List<Event> getGraphEvents(String userId) {
         //Get all events for the next tree full working weeks
         final LocalDate dateEnd = LocalDate.now();
-        final LocalDate dateStartInitial = LocalDate.now().plusWeeks(GRAPH_WEEKS_IN_ADVANCE);
+        final LocalDate dateStartInitial = LocalDate.now().plusWeeks(Long.parseLong(weeks_in_advance));
         final LocalDate dateStart = dateStartInitial.plusDays(7 - dateStartInitial.getDayOfWeek().getValue());
 
         EventCollectionPage eventCollectionPage = Objects.requireNonNull(msGraphClientAtomicRef.get()
@@ -573,6 +574,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 GRAPH_USER_ID,
                 GRAPH_IS_DELETE,
                 GRAPH_IS_UPDATE,
+                GRAPH_WEEKS_IN_ADVANCE,
                 GRAPH_REBUILD_MAP_CACHE,
                 GRAPH_ZERMELO_URL,
                 GRAPH_ZERMELO_TOKEN,

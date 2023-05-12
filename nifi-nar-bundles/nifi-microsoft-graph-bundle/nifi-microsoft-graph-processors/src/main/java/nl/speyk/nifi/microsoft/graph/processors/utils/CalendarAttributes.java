@@ -1,9 +1,6 @@
 package nl.speyk.nifi.microsoft.graph.processors.utils;
 
 public final class CalendarAttributes {
-    //For how many full working weeks we will synchronize
-    //the appointments in advance
-    public final static int GRAPH_WEEKS_IN_ADVANCE = 3;
 
     //Microsoft allows max 4 concurrent tasks on a mailbox
     public final static int GRAPH_MAILBOX_CONCURRENCY_LIMIT = 4;
@@ -20,7 +17,6 @@ public final class CalendarAttributes {
     public final static String EXCEPTION_CLASS = "invokeMSGraph.java.exception.class";
     public final static String EXCEPTION_MESSAGE = "invokeMSGraph.java.exception.message";
 
-   //Compounded key(partition/row) for storing events in a distributed map cache
+    //Compounded key(partition/row) for storing events in a distributed map cache
     public final static String PARTITION_KEY = "event";
-
 }

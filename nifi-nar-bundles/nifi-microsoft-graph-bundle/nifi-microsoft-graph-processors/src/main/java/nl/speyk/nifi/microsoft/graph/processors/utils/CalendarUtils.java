@@ -80,6 +80,15 @@ public final class CalendarUtils {
             .defaultValue("false")
             .required(true)
             .build();
+    public static final PropertyDescriptor GRAPH_WEEKS_IN_ADVANCE = new PropertyDescriptor.Builder()
+            .name("mg-cs-weeks-in-advance")
+            .displayName("Weeks in advance, default is 3")
+            .description("For how many weeks in advance should the appointments be synced.")
+            .allowableValues("3", "6")
+            .defaultValue("3")
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .required(true)
+            .build();
 
     public static final PropertyDescriptor GRAPH_ZERMELO_URL = new PropertyDescriptor.Builder()
             .name("mg-cs-zermelo-url")
