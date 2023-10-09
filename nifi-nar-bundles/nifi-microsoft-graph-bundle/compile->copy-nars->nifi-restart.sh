@@ -30,9 +30,9 @@ printf "Waiting for NiFi to come alive.\n"
 ret="0"
 while [ $ret -ne "200" ]
 do
-    ret=$(curl -I -s $NIFI_URL -o /dev/null -w "%{http_code}\n")
-    sleep 3
-    echo "Still waiting.."
+  ret=$(curl -I -s $NIFI_URL -o /dev/null -w "%{http_code}\n")
+  sleep 3
+  echo "Still waiting.."
 done
 
 echo  "NiFi started."
