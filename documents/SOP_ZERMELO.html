@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>SOP_ZERMELO.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<h2>SOP rooster synchronisation Zermelo</h2>
+<h3>Copy existing processor group</h3>
+<ul>
+<li>Follow the CONNECT_TO_AKS sop for creating a connection to AKS and Apache NiFi.</li>
+<li>Open a browser and got the url <a href="http://localhost:8080/nifi">http://localhost:8080/nifi</a>  </li>
+</ul>
+<p><img alt="Login Apache NiFi cluster" src="Login_Apache_NiFi.png" />  </p>
+<ul>
+<li>Choose the DIS_Live Process Group
+ Choose a Process Group for example Mondia scholengroep and make a copy.  </li>
+</ul>
+<p><img alt="Copy process group" src="Make_Copy.png" /></p>
+<h3>Create parameter context</h3>
+<ul>
+<li>Paste the Process Group and right click and choose configure.  </li>
+</ul>
+<p><img alt="Click configure" src="Click_Configure.png" /></p>
+<ul>
+<li>Choose a process group name and make a new parameter context.  </li>
+</ul>
+<p><img alt="Choose new parameter context" src="New_Parameter_Context.png" /></p>
+<ul>
+<li>Give the parameter context a name and fill the following name value parameters.</li>
+</ul>
+<p>| Name | Value |
+| :---- | :----- |
+| zermelo.appointments.full | /api/v3/appointments/?startWeekOffset=0&amp;endWeekOffset=3&amp;fields=id,valid,appointmentInstance,start,end,startTimeSlotName,endTimeSlotName,subjects,groups,locations,teachers,cancelled,changeDescription,schedulerRemark,content,expectedStudentCount,expectedStudentCountOnline |  <br />
+| zermelo.appointments.quick | /api/v3/appointments/?startWeekOffset=0&amp;endWeekOffset=3&amp;modifiedSince=${now():toNumber():divide(1000):minus(900)}&amp;fields=id,valid,appointmentInstance,start,end,startTimeSlotName,endTimeSlotName,subjects,groups,locations,teachers,cancelled,changeDescription,schedulerRemark,content,expectedStudentCount,expectedStudentCountOnline | 
+| zermelo.avroschema | { "namespace": "nifi", "name": "appointment", "type": "record", "fields": [ { "name": "id", "type": "long" }, { "name": "appointmentInstance", "type": "long" }, { "name": "start", "type": "long", "logicalType":"timestamp-millis" }, { "name": "startDateTime", "type": ["null", "string"] }, { "name":"startDateIso","type":["null","string"] }, { "name": "end", "type": "long","logicalType":"timestamp-millis" }, { "name": "endDateTime", "type": ["null", "string" ]}, { "name": "groups", "type": {"type": "array", "items": "string", "default": "[]" }}, { "name": "locations", "type": {"type": "array", "items": "string", "default": "[]" }}, { "name": "valid", "type": "boolean" }, { "name": "cancelled", "type": "boolean" }, { "name": "changeDescription", "type": ["null", "string"] }, {"name": "schedulerRemark", "type": ["null", "string"] }, {"name": "expectedStudentCount", "type": "int" }, {"name": "expectedStudentCountOnline", "type": "int" }, {"name": "content", "type":["null", "string"] }, {"name": "startTimeSlotName", "type": "string" }, {"name": "endTimeSlotName", "type": "string" }, {"name": "email", "type": "string" }, {"name": "subjects", "type": {"type": "array", "items": "string", "default":"[]" }}, {"name": "teachers", "type": {"type": "array", "items": "string", "default":"[]"} } ] } |
+| zermelo.baseurl | https://customer.zportal.nl | 
+| zermelo.domain | mondia.nl | 
+| zermelo.oauthtokenBearer | Bearer dlvhevtfk8og4hnjun02g14id8 |
+| zermelo.teachers | /api/v3/users?isEmployee=true&amp;fields=code,email |</p>
+<h3>Configure controller services</h3>
+<ul>
+<li>
+<p>The processors utilized are dependent on various Apache NiFi controller services, including custom-made controller services for SPEYK. These service controllers must be enabled, started, and configured properly.  </p>
+</li>
+<li>
+<p>Select the MicrosoftGraphCredentialControllerService, set up the necessary properties, and enable it.</p>
+</li>
+</ul>
+<p><img alt="Configure controller services" src="Configure_Controllers.png" /></p>
+<p>| Property | Value |
+ | :--------| :-----|
+ | Auth Grant Type | client_credentials |
+ | Auth Client id | 014b1961-2082-428a-940d-b5129e6ae9fe |
+ | Auth Client Secret | qU-8Q~POFUZbTmbRb0MGC-XqEvFSlAMMaNoiHdAa |
+ | Auth Tenant Id | 617f0231-3e08-4ebe-a403-3731ed7b9712 |
+ | Auth Scope | https://graph.microsoft.com/.default |</p>
+<ul>
+<li>Enable the controller serivces:</li>
+<li>JsonTreeReaderSchemaless</li>
+<li>JsonTreeReader</li>
+<li>JsonRecordSetWriter</li>
+<li>
+<p>ExternalHazelcastCacheManager</p>
+</li>
+<li>
+<p>Select the HazelcastMapCacheClient, configure its properties, and ensure it is enabled.</p>
+</li>
+</ul>
+</body>
+</html>
