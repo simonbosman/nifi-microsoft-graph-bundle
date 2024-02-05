@@ -4,7 +4,7 @@ To manage a Kubernetes cluster, use the Kubernetes command-line client, `kubectl
 
 1. Configure `kubectl` to connect to your Kubernetes cluster using the `az aks get-credentials` command. This command downloads credentials and configures the Kubernetes CLI to use them.  
 ``` 
-az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+az aks get-credentials --resource-group DIS_KUBERNETES --name DIS-AKS
 ```
 
 2. Verify the connection to your cluster using the `kubectl get` command. This command returns a list of the cluster nodes.  

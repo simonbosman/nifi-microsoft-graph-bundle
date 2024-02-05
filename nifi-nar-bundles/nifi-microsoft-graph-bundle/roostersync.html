@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>roostersync.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<p>De roostersynchronisatie ondersteunt verschillende scenario's, afhankelijk van de synchronisatiefrequentie:</p>
+<h3>Volledige synchronisatie (elke nacht):</h3>
+<p>Deze synchronisatie omvat alle afspraken voor de komende 3/6 weken die als geldig zijn gemarkeerd.</p>
+<ol>
+<li><strong>Nieuwe afspraak in Zermelo, maar niet in de agenda:</strong></li>
+<li>
+<p>Actie: Afspraak wordt aangemaakt in de agenda.</p>
+</li>
+<li>
+<p><strong>Afspraak niet geldig (valid=false) in Zermelo:</strong></p>
+</li>
+<li>
+<p>Actie: Afspraak wordt op 'tentative' gezet of verwijderd op basis van de geconfigureerde parameterwaarde.</p>
+</li>
+<li>
+<p><strong>Afspraak bestaat in zowel Zermelo als de agenda:</strong></p>
+</li>
+<li>
+<p>Actie: Geen toevoeging of verwijdering.</p>
+</li>
+<li>
+<p><strong>Afspraak bestaat zowel in Zermelo als de agenda, maar inhoud verschilt:</strong></p>
+</li>
+<li>Actie: Agenda-afspraak wordt aangepast aan Zermelo. Geannuleerde afspraken worden grijs gearceerd in de agenda met de inhoud "Les vervalt." wanneer geopend. In de beschrijving worden de karakters [!] toegevoegd. Een bestaande teams-link in de inhoud van de afsrpaak blijft ongewijzigd.</li>
+</ol>
+<h3>Snelle synchronisatie (elke 5 minuten):</h3>
+<p>Deze synchronisatie omvat alle afspraken van de afgelopen 15 minuten.</p>
+<ol>
+<li><strong>Nieuwe afspraak in Zermelo, maar niet in de agenda:</strong></li>
+<li>
+<p>Actie: Afspraak wordt aangemaakt in de agenda.</p>
+</li>
+<li>
+<p><strong>Afspraak bestaat zowel in Zermelo als de agenda:</strong></p>
+</li>
+<li>
+<p>Actie: Geen toevoeging of verwijdering.</p>
+</li>
+<li>
+<p><strong>Afspraak bestaat zowel in Zermelo als de agenda, maar inhoud verschilt:</strong></p>
+</li>
+<li>Actie: Agenda-afspraak wordt aangepast aan Zermelo. Geannuleerde afspraken worden grijs gearceerd in de agenda met de inhoud "Les vervalt." wanneer geopend. In de beschrijving worden de karakters [!] toegevoegd. Een bestaande teams-link in de inoud van de afspraak blijft ongewijzigd.</li>
+</ol>
+<h3>Speciaal scenario:</h3>
+<ul>
+<li><strong>Opslag van digitale vingerafdrukken:</strong></li>
+<li>
+<p>Actie: Vingerafdrukken van alle afspraken worden opgeslagen in een gedistribueerde mapcache.</p>
+</li>
+<li>
+<p><strong>Periodieke verificatie van vingerafdrukken (elke 5 minuten):</strong></p>
+</li>
+<li>Actie: Vingerafdrukken van agenda-afspraken worden vergeleken met die van Zermelo. Bij een verschil wordt de agenda-afspraak aangepast aan de afspraak in Zermelo. De inhoud van de afspraak blijft ongewijzigd.</li>
+</ul>
+<h3>Opmerking:</h3>
+<p>Andere scenario's worden op dit moment niet ondersteund.</p>
+</body>
+</html>

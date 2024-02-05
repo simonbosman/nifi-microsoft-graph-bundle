@@ -1,26 +1,27 @@
 ## SOP rooster synchronisation Zermelo
 
-### Copy existing processor group
-* Follow the CONNECT-TO-AKS sop for creating a connection to AKS and Apache NiFi.
-* Open a browser and got the url [http://localhost:8080/nifi](http://localhost:8080/nifi)  
+### Cloning an Existing Processor Group
+
+* Initially, establish a connection to AKS and Apache NiFi by following the "CONNECT-TO-AKS" SOP.
+* Access Apache NiFi's interface by navigating to http://localhost:8080/nifi in your web browser. 
  
  ![Login Apache NiFi cluster](Login_Apache_NiFi.png)  
 
-* Choose the DIS_Live Process Group
- Choose a Process Group for example Mondia scholengroep and make a copy.  
+* Locate and select the "DIS_Live" Process Group. From there, choose a specific Process Group, such as "Mondia scholengroep," and duplicate it.
 
  ![Copy process group](Make_Copy.png)
 
-### Create parameter context
-* Paste the Process Group and right click and choose configure.  
+### Setting Up a Parameter Context
+
+* After duplicating the Process Group, right-click on it and select "configure" to begin setting it up.
  
  ![Click configure](Click_Configure.png)
 
-* Choose a process group name and make a new parameter context.  
+* Assign a name to your Process Group and create a new parameter context for it.
 
  ![Choose new parameter context](New_Parameter_Context.png)
 
-* Give the parameter context a name and fill the following name value parameters.
+* Define the parameter context by giving it a name and entering the following parameters:
 
  | Name | Value |
 | :---- | :----- |
@@ -33,9 +34,9 @@
 | zermelo.teachers | /api/v3/users?isEmployee=true&fields=code,email |
 
 ### Configure controller services
-* The processors utilized are dependent on various Apache NiFi controller services, including custom-made controller services for SPEYK. These service controllers must be enabled, started, and configured properly.  
+* Ensure the correct operation of processors by configuring Apache NiFi controller services, including custom SPEYK services. These must be enabled and configured appropriately.
 
-* Select the MicrosoftGraphCredentialControllerService, set up the necessary properties, and enable it.
+* For the "MicrosoftGraphCredentialControllerService," input the necessary details and activate it.
 
  ![Configure controller services](Configure_Controllers.png)
 
@@ -47,13 +48,13 @@
  | Auth Tenant Id | 617f0231-3e08-4ebe-a403-3731ed7b9712 |
  | Auth Scope | https://graph.microsoft.com/.default |
 
-* Enable the controller serivces:
+* Enable the following controller services:
  - JsonTreeReaderSchemaless
  - JsonTreeReader
  - JsonRecordSetWriter
  - ExternalHazelcastCacheManager
 
-* Select the HazelcastMapCacheClient, configure its properties, and ensure it is enabled.
+* Configure and enable the "HazelcastMapCacheClient" with the specified settings.
 
  ![Configure hazelcast](Hazelcast.png)
  
@@ -63,12 +64,41 @@
  | Hazelcast Cache Name | customer_scholengroep |
  | Hazelcast Entry Lifetime | 22 days |
  
- * Enable the controller service DistributedMapCacheLookupService
+ * Also, activate the "DistributedMapCacheLookupService" controller service.
 
- ### Configure the created processor group 
+### Finalizing the Processor Group Setup
  
- * Open the just create processor groep en right click on Teachers and choose Start
+* Within the newly created processor group, initiate the "Teachers" processor by right-clicking on it and selecting "Start."
 
   ![Start processor group Teachers](Start_Teachers.png)
   
- *  Navigate to the processor group named "Appointments" and find the processor "InvokeRestApiZermeloFull." Double-click to open it.
+*  Proceed to the "Appointments" processor group, locate the "InvokeRestApiZermeloFull" processor, and access its configuration.
+
+ ![Navigate to InvokeRestApiZermeloFull](Invoke_Microsoft.png)
+ 
+* Adjust its settings accordingly.
+ 
+  ![Configure properties](Invoke_Microsoft_Properties.png)
+  
+  | Property | Value |
+  | :------- | :---- |
+  |  Graph Controller Service | MicrosoftGraphCredentialControllerService |
+  | Distributed mapcache client |  HazelcastMapCacheClient |
+  | Rooster System | Zermelo |
+  | User Id | ${'upn-name'}|
+  | Delete events, default is tentative | true|
+  | Is Update | ${'is-update'} |
+  | Weeks in advance, default is 3 | 3|
+  | Rebuild the map cache | false |
+  | Zermelo rest api endpoint | https://{naam scbool}.zportal.nl//api/v3/appointments/
+  | Zermelo oauth token | clvhevtfk8og3hnfie02g14id7 |
+  | Zermelo prefix | |
+  | Zermelo postfix | [!] |
+  
+* Ensure all processors within the "Appointments" group are activated.
+ 
+ ![Start appointments](Start_Appointments.png)
+
+* Completion of these steps successfully configures the synchronization process with Zermelo.
+ 
+  

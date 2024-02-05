@@ -11,6 +11,8 @@ spec:
       port: 8080
     - name: liveschedule
       port: 8000
+    - name: liveschedulechoices
+      port: 8001
   selector:
     app: nifi
   publishNotReadyAddresses: true

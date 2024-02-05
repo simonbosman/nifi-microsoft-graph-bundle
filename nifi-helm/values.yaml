@@ -1,6 +1,6 @@
 ---
 # Number of nifi nodes
-replicaCount: 2
+replicaCount: 3 
 
 ## Set default image, imageTag, and imagePullPolicy.
 ## ref: https://hub.docker.com/r/apache/nifi/
