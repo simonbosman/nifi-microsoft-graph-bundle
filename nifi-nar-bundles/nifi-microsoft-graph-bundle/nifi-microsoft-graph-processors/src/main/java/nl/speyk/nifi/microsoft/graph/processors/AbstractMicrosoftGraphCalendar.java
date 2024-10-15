@@ -59,11 +59,13 @@ import java.util.stream.Collectors;
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarAttributes.*;
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils.*;
 
-@Tags({"Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor"})
+@Tags({ "Speyk", "Microsoft", "Graph", "Calendar", "Client", "Processor" })
 @CapabilityDescription("Automate appointment organization and calendaring with  Microsoft Graph REST API.")
 @SeeAlso({})
 @ReadsAttributes({})
-@WritesAttributes({@WritesAttribute(attribute = "invokeMSGraph.java.exception.class", description = "The Java exception class raised when the processor fails"), @WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "The Java exception message raised when the processor fails")})
+@WritesAttributes({
+        @WritesAttribute(attribute = "invokeMSGraph.java.exception.class", description = "The Java exception class raised when the processor fails"),
+        @WritesAttribute(attribute = "invokeMSGraph.java.exception.message", description = "The Java exception message raised when the processor fails") })
 public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
     protected final AtomicReference<GraphServiceClient<Request>> msGraphClientAtomicRef = new AtomicReference<>();
@@ -75,8 +77,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     private List<PropertyDescriptor> descriptors;
     private Set<Relationship> relationships;
 
-    private void routeToSuccess(final ProcessSession session, Object content) {
-        // Attributes for success and retry flow files
+    private void routeTo(final ProcessSession session, Object content, Relationship relationship) {
         final Map<String, String> attributes = new Hashtable<>();
         attributes.put("Content-Type", "application/json; charset=utf-8");
         attributes.put("mime.type", "application/json");
@@ -84,32 +85,31 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(content);
 
-        //If event is created, put the response in the success flow file
-        FlowFile succesFlowFile = session.create();
-        succesFlowFile = session.putAllAttributes(succesFlowFile, attributes);
-        session.write(succesFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-        session.transfer(succesFlowFile, REL_SUCCESS);
+        FlowFile flowFile = session.create();
+        flowFile = session.putAllAttributes(flowFile, attributes);
+        session.write(flowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
+        session.transfer(flowFile, relationship);
     }
 
-    private void routeToError(final ProcessSession session, Object content) {
-        // Attributes for success and retry flow files
-        final Map<String, String> attributes = new Hashtable<>();
-        attributes.put("Content-Type", "application/json; charset=utf-8");
-        attributes.put("mime.type", "application/json");
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(content);
-
-        //If an error occurred put the error in flow file and route to failure
-        FlowFile errorFlowFile = session.create();
-        errorFlowFile = session.putAllAttributes(errorFlowFile, attributes);
-        session.write(errorFlowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
-        session.transfer(errorFlowFile, REL_FAILURE);
+    protected void routeToFailure(FlowFile requestFlowFile, final ComponentLog logger, final ProcessSession session,
+            final ProcessContext context, final Exception e) {
+        // penalize or yield
+        if (requestFlowFile != null) {
+            logger.error("Routing to {} due to exception: {}", new Object[] { REL_FAILURE.getName(), e }, e);
+            requestFlowFile = session.penalize(requestFlowFile);
+            requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_CLASS, e.getClass().getName());
+            requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_MESSAGE, e.getMessage());
+            // transfer original to failure
+            session.transfer(requestFlowFile, REL_FAILURE);
+        } else {
+            logger.error("Yielding processor due to exception encountered as a source processor: {}", e);
+            context.yield();
+        }
     }
 
     private String eventToString(Event evt, @NotNull Boolean isGraphEvent) {
         StringBuilder sb = new StringBuilder();
-        //A graph event has a different datetime format, hence we convert it.
+        // A graph event has a different datetime format, hence we convert it.
         if (isGraphEvent) {
             DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
                     .withZone(ZoneId.of("Europe/Berlin"));
@@ -118,11 +118,14 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime).atZone(ZoneId.of("UTC"));
             sb.append(dtEnd.format(dtFormatter));
         } else {
-            if (evt.start != null) sb.append(evt.start.dateTime);
-            if (evt.end != null) sb.append(evt.end.dateTime);
+            if (evt.start != null)
+                sb.append(evt.start.dateTime);
+            if (evt.end != null)
+                sb.append(evt.end.dateTime);
         }
         sb.append(evt.subject);
-        if (evt.showAs != null) sb.append(evt.showAs.name());
+        if (evt.showAs != null)
+            sb.append(evt.showAs.name());
         if (evt.location != null && evt.location.displayName != null && !evt.location.displayName.isEmpty())
             sb.append(evt.location.displayName);
         else if (evt.locations != null && evt.locations.size() > 0) {
@@ -144,37 +147,21 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         return createHashedEvent(evt, false);
     }
 
-    protected void routeToFailure(FlowFile requestFlowFile, final ComponentLog logger, final ProcessSession session,
-                                  final ProcessContext context, final Exception e) {
-        // penalize or yield
-        if (requestFlowFile != null) {
-            logger.error("Routing to {} due to exception: {}", new Object[]{REL_FAILURE.getName(), e}, e);
-            requestFlowFile = session.penalize(requestFlowFile);
-            requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_CLASS, e.getClass().getName());
-            requestFlowFile = session.putAttribute(requestFlowFile, EXCEPTION_MESSAGE, e.getMessage());
-            // transfer original to failure
-            session.transfer(requestFlowFile, REL_FAILURE);
-        } else {
-            logger.error("Yielding processor due to exception encountered as a source processor: {}", e);
-            context.yield();
-        }
-    }
-
     protected List<Event> getGraphEvents(String userId) {
-        //Get all events for the next tree full working weeks
+        // Get all events for the next tree full working weeks
         final LocalDate dateEnd = LocalDate.now();
         final LocalDate dateStartInitial = LocalDate.now().plusWeeks(Long.parseLong(weeks_in_advance));
         final LocalDate dateStart = dateStartInitial.plusDays(7 - dateStartInitial.getDayOfWeek().getValue());
 
         EventCollectionPage eventCollectionPage = Objects.requireNonNull(msGraphClientAtomicRef.get()
-                        .users(userId)
-                        .events()
-                        .buildRequest())
+                .users(userId)
+                .events()
+                .buildRequest())
                 .select("id, transactionId, subject, body, bodyPreview, start, end, location, showAs")
                 .filter(String.format("end/dateTime ge '%s' and start/dateTime lt '%s'", dateEnd, dateStart))
                 .get();
 
-        //Loop trough available pages and fill list of events
+        // Loop trough available pages and fill list of events
         List<Event> events = new LinkedList<>();
         while (eventCollectionPage != null) {
             events.addAll(eventCollectionPage.getCurrentPage());
@@ -188,17 +175,19 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         return events;
     }
 
-    //Get the difference of the given lists of events.
+    // Get the difference of the given lists of events.
     protected List<Event> eventsDiff(List<Event> eventsSource, List<Event> eventsDest) {
         Set<String> setSource = new HashSet<>();
         for (Event evt : eventsSource) {
-            if (evt.transactionId == null) continue;
+            if (evt.transactionId == null)
+                continue;
             setSource.add(evt.transactionId);
         }
 
         Set<String> setGraph = new HashSet<>();
         for (Event evt : eventsDest) {
-            if (evt.transactionId == null) continue;
+            if (evt.transactionId == null)
+                continue;
             setGraph.add(evt.transactionId);
         }
 
@@ -211,7 +200,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
     }
 
     protected void putEventMapCache(Event evt,
-                                    DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException {
+            DistributedMapCacheClient cache) throws IOException, NoSuchAlgorithmException {
         final Consumer<String> logError = (transactionId) -> {
             getLogger().error("Could not put hashed/full event: %s in the distributed map cache.", transactionId);
         };
@@ -231,24 +220,26 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             return;
         }
 
-        cache.put(PARTITION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer, valueSerializer);
+        cache.put(PARTITION_KEY + evt.transactionId, cacheValue.getBytes(StandardCharsets.UTF_8), keySerializer,
+                valueSerializer);
     }
 
     protected void putBatchGraphEvents(final ProcessContext context, final ProcessSession session, List<Event> events,
-                                       String userId, boolean isUpdate, final FlowFile requestFlowFile,
-                                       final DistributedMapCacheClient cache) throws ClientException, IOException, NoSuchAlgorithmException {
+            String userId, boolean isUpdate, final FlowFile requestFlowFile,
+            final DistributedMapCacheClient cache) throws ClientException, IOException, NoSuchAlgorithmException {
         // Attributes for success and retry flow files
         final Map<String, String> attributes = new Hashtable<>();
         attributes.put("Content-Type", "application/json; charset=utf-8");
         attributes.put("mime.type", "application/json");
 
-        //Used when updating appointment instance in Zermelo with a teams link
+        // Used when updating appointment instance in Zermelo with a teams link
         String url = context.getProperty(GRAPH_ZERMELO_URL).getValue();
         String bearer = context.getProperty(GRAPH_ZERMELO_TOKEN).getValue();
         final Zermelo zermelo = new Zermelo(url, bearer);
 
         // error codes for retry
-        final int[] errorCodes = {GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE, GRAPH_HTTP_GATEWAY_TIMEOUT};
+        final int[] errorCodes = { GRAPH_HTTP_TO_MANY_REQUESTS, GRAPH_HTTP_SERVICE_UNAVAILABLE,
+                GRAPH_HTTP_GATEWAY_TIMEOUT };
 
         // Partition the list in sub lists of 4 each
         for (List<Event> eventList : Lists.partition(events, GRAPH_MAILBOX_CONCURRENCY_LIMIT)) {
@@ -259,22 +250,24 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
 
             // Four requests per batch
             for (Event event : eventList) {
-                //Adjust timezones for Zermelo
+                // Adjust timezones for Zermelo
                 if (rooster == Rooster.ZERMELO) {
                     DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
                             .withZone(ZoneId.of("Europe/Berlin"));
-                    ZonedDateTime dtStart = LocalDateTime.parse(event.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+                    ZonedDateTime dtStart = LocalDateTime
+                            .parse(event.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
                             .atZone(ZoneId.of("UTC"));
                     event.start.dateTime = dtStart.format(dtFormatter);
-                    ZonedDateTime dtEnd = LocalDateTime.parse(event.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+                    ZonedDateTime dtEnd = LocalDateTime
+                            .parse(event.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
                             .atZone(ZoneId.of("UTC"));
                     event.end.dateTime = dtEnd.format(dtFormatter);
                 }
-                //Sort the locations
+                // Sort the locations
                 if (event.locations != null) {
                     event.locations.sort(Comparator.comparing((loc) -> loc.displayName));
                 }
-                //Sanitize body content
+                // Sanitize body content
                 if (event.body != null && event.body.content != null && event.body.content.length() > 0) {
                     if (rooster == Rooster.ZERMELO) {
                         if (context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() != null) {
@@ -285,7 +278,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                     event.body.contentType = BodyType.HTML;
                     event.body.content = Entities.unescape(Jsoup.parse(event.body.content).html());
                 }
-                //Put the event in a hashtable for future reference
+                // Put the event in a hashtable for future reference
                 idEvent.put(batchRequestContent.addBatchRequestStep(Objects.requireNonNull(msGraphClientAtomicRef.get()
                         .users(userId)
                         .events()
@@ -300,23 +293,26 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             if (batchResponseContent != null && batchResponseContent.responses != null) {
                 for (BatchResponseStep<JsonElement> batchResponseStep : batchResponseContent.responses) {
                     if (batchResponseStep.status == HttpResponseCode.HTTP_CREATED) {
-                        //If event is created, put the response in the success flow file
-                        routeToSuccess(session, batchResponseStep.body);
+                        // If event is created, put the response in the success flow file
+                        routeTo(session, batchResponseStep.body, REL_SUCCESS);
                         Event createdEvent = batchResponseStep.getDeserializedBody(Event.class);
-                        getLogger().info("Event for user {} with transactionId {} has been created. Event: {}", createdEvent.organizer.emailAddress.address, createdEvent.transactionId, eventToString(createdEvent, false));
-                        //Get original from hashtable, id is used for Zermelo write back
+                        getLogger().info("Event for user {} with transactionId {} has been created. Event: {}",
+                                createdEvent.organizer.emailAddress.address, createdEvent.transactionId,
+                                eventToString(createdEvent, false));
+                        // Get original from hashtable, id is used for Zermelo write back
                         Event orgEvent = idEvent.get(batchResponseStep.id);
-                        //Write back online teams url in Zermelo
+                        // Write back online teams url in Zermelo
                         if (rooster == Rooster.ZERMELO && createdEvent.onlineMeeting != null) {
-                            getLogger().info(zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeeting.joinUrl));
+                            getLogger()
+                                    .info(zermelo.put(Long.parseLong(orgEvent.id), createdEvent.onlineMeeting.joinUrl));
                         }
-                        //Put the event in the distributed map cache
+                        // Put the event in the distributed map cache
                         putEventMapCache(orgEvent, cache);
 
                     } else if (Arrays.stream(errorCodes).anyMatch(e -> e == batchResponseStep.status)) {
-                        //In case of the following error codes (429, 503, 504)
-                        //put the event from the hashtable in a flow file and route to retry
-                        final Event[] evtRetry = {idEvent.get(batchResponseStep.id)};
+                        // In case of the following error codes (429, 503, 504)
+                        // put the event from the hashtable in a flow file and route to retry
+                        final Event[] evtRetry = { idEvent.get(batchResponseStep.id) };
 
                         String json = Objects.requireNonNull(msGraphClientAtomicRef.get().getSerializer())
                                 .serializeObject(evtRetry);
@@ -326,7 +322,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                         attributes.put("is-update", Boolean.toString(isUpdate));
                         retryFLowFile = session.putAllAttributes(retryFLowFile, attributes);
 
-                        //Use the RetryFLow processor for setting the max retries
+                        // Use the RetryFLow processor for setting the max retries
                         final String attrNumRetries = requestFlowFile.getAttribute("flowfile.retries");
                         final String numRetries = (attrNumRetries != null) ? attrNumRetries : "1";
 
@@ -335,10 +331,10 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                         session.write(retryFLowFile, out -> IOUtils.write(json, out, StandardCharsets.UTF_8));
                         session.transfer(retryFLowFile, REL_RETRY);
                     } else if (batchResponseStep.status == HttpResponseCode.HTTP_CLIENT_ERROR) {
-                        //In case of an existing transactionId we want to route to failure and continue
-                        routeToError(session, batchResponseStep.body);
+                        // In case of an existing transactionId we want to route to failure and continue
+                        routeTo(session, batchResponseStep.body, REL_FAILURE);
                     } else {
-                        //This will throw a GraphServiceException or return Event
+                        // This will throw a GraphServiceException or return Event
                         batchResponseStep.getDeserializedBody(Event.class);
                     }
                 }
@@ -348,41 +344,43 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         }
     }
 
-
     protected void patchEvents(final ProcessContext context, String userId, List<Event> eventsSource,
-                               List<Event> eventsGraph, DistributedMapCacheClient cache,
-                               ProcessSession session) throws NoSuchAlgorithmException, IOException {
+            List<Event> eventsGraph, DistributedMapCacheClient cache,
+            ProcessSession session) throws NoSuchAlgorithmException, IOException {
 
-        //Are there any changes in the source event?
-        //Patch the graph with the changed event
-        //Update the cache with the changed event
+        // Are there any changes in the source event?
+        // Patch the graph with the changed event
+        // Update the cache with the changed event
         for (Event evt : eventsSource) {
             try {
-                //Adjust timezones for Zermelo
+                // Adjust timezones for Zermelo
                 if (rooster == Rooster.ZERMELO) {
                     DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
                             .withZone(ZoneId.of("Europe/Berlin"));
-                    ZonedDateTime dtStart = LocalDateTime.parse(evt.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+                    ZonedDateTime dtStart = LocalDateTime
+                            .parse(evt.start.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
                             .atZone(ZoneId.of("UTC"));
                     evt.start.dateTime = dtStart.format(dtFormatter);
-                    ZonedDateTime dtEnd = LocalDateTime.parse(evt.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+                    ZonedDateTime dtEnd = LocalDateTime
+                            .parse(evt.end.dateTime, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
                             .atZone(ZoneId.of("UTC"));
                     evt.end.dateTime = dtEnd.format(dtFormatter);
                 }
-                //Sort the locations
+                // Sort the locations
                 if (evt.locations != null) {
                     evt.locations.sort(Comparator.comparing((loc) -> loc.displayName));
                 }
 
-                //Mark the event if there has been a notification
-                if (rooster == Rooster.ZERMELO && evt.body != null && evt.body.content != null && !evt.body.content.isEmpty()) {
+                // Mark the event if there has been a notification
+                if (rooster == Rooster.ZERMELO && evt.body != null && evt.body.content != null
+                        && !evt.body.content.isEmpty()) {
                     if (context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() != null) {
                         evt.subject = context.getProperty(GRAPH_ZERMELO_PREFIX).getValue() + evt.subject;
                     }
                     evt.subject += context.getProperty(GRAPH_ZERMELO_POSTFIX).getValue();
                 }
 
-                //Compare hashes
+                // Compare hashes
                 byte[] hashedEvt = createHashedEvent(evt);
 
                 if (evt.transactionId == null) {
@@ -392,9 +390,9 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                 if (cache.containsKey(evt.transactionId, keySerializer)) {
                     hashedCachedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
                 }
-                //Distributed map cache could be empty, in case of failures.
+                // Distributed map cache could be empty, in case of failures.
                 if ((hashedCachedEvt != null & !Arrays.equals(hashedEvt, hashedCachedEvt)) || hashedCachedEvt == null) {
-                    //Sanitize body content
+                    // Sanitize body content
                     if (evt.body != null && evt.body.content != null) {
                         evt.body.contentType = BodyType.HTML;
                         evt.body.content = Entities.unescape(Jsoup.parse(evt.body.content).html());
@@ -404,8 +402,8 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             .filter(event -> event.transactionId.equals(evt.transactionId))
                             .findAny()
                             .get();
-                    //If there is a teams link in the description, we want to keep it
-                    //Add the body content to the existing body content
+                    // If there is a teams link in the description, we want to keep it
+                    // Add the body content to the existing body content
                     final String regex = "teams.microsoft.com";
                     final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
                     final Matcher matcher = pattern.matcher(eventToPatch.bodyPreview);
@@ -413,43 +411,50 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                     if (isTeamLink) {
                         evt.body.content += eventToPatch.body.content;
                     }
-                    routeToSuccess(session, msGraphClientAtomicRef.get()
+                    routeTo(session, msGraphClientAtomicRef.get()
                             .users(userId)
                             .events(Objects.requireNonNull(eventToPatch.id))
                             .buildRequest()
-                            .patch(evt));
-                    getLogger().info("Event for user {} with transactionId {} has been updated. " + "Event Source: {}; Event Graph: {}", userId, evt.transactionId, eventToString(evt, false), eventToString(eventToPatch, true));
+                            .patch(evt), REL_SUCCESS);
+                    getLogger().info(
+                            "Event for user {} with transactionId {} has been updated. "
+                                    + "Event Source: {}; Event Graph: {}",
+                            userId, evt.transactionId, eventToString(evt, false), eventToString(eventToPatch, true));
                     putEventMapCache(evt, cache);
                 }
             } catch (NoSuchElementException e) {
-                getLogger().error(String.format("Source event with transactionId %s couldn't be patched. " + "Most likely the event has just been created", evt.transactionId));
+                getLogger().error(String.format("Source event with transactionId %s couldn't be patched. "
+                        + "Most likely the event has just been created", evt.transactionId));
             }
         }
     }
 
     protected void undoEvents(String userId, List<Event> undoEvents, DistributedMapCacheClient cache,
-                              ProcessSession session) throws NoSuchAlgorithmException, IOException {
+            ProcessSession session) throws NoSuchAlgorithmException, IOException {
 
-        //Are there any changes in the graph event?
-        //Patch the graph event with the original event
-        //from the source events in the map cache
-        //Effectually restoring manual changes to the graph
+        // Are there any changes in the graph event?
+        // Patch the graph event with the original event
+        // from the source events in the map cache
+        // Effectually restoring manual changes to the graph
         for (Event evt : undoEvents) {
-            //Event not managed by DIS, so continue
-            if (evt.transactionId == null) continue;
+            // Event not managed by DIS, so continue
+            if (evt.transactionId == null)
+                continue;
 
-            //We don't care about tentative events
+            // We don't care about tentative events
             assert evt.showAs != null;
-            if (evt.showAs.name().equals("TENTATIVE")) continue;
+            if (evt.showAs.name().equals("TENTATIVE"))
+                continue;
 
             try {
                 byte[] hashedCashedEvt = cache.get(evt.transactionId, keySerializer, valueDeserializer);
-                //Graph event isn't an event managed by DIS, so skip
-                if (hashedCashedEvt == null) continue;
+                // Graph event isn't an event managed by DIS, so skip
+                if (hashedCashedEvt == null)
+                    continue;
                 byte[] hashedEvt = createHashedEvent(evt, true);
-                //Graph event has changed, so fix this
+                // Graph event has changed, so fix this
                 if (!Arrays.equals(hashedEvt, hashedCashedEvt)) {
-                    //Is the event in the distributed map cache?
+                    // Is the event in the distributed map cache?
                     byte[] cacheValue = cache.get(PARTITION_KEY + evt.transactionId, keySerializer, valueDeserializer);
                     if (cacheValue == null) {
                         throw new NoSuchElementException();
@@ -461,7 +466,7 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                         throw new NoSuchElementException();
                     }
 
-                    //We don't want to override the body context
+                    // We don't want to override the body context
                     eventPatchVal.body = evt.body;
 
                     Object content = msGraphClientAtomicRef.get()
@@ -469,60 +474,71 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
                             .events(Objects.requireNonNull(evt.id))
                             .buildRequest()
                             .patch(eventPatchVal);
-                    routeToSuccess(session, content);
-                    getLogger().info("Event for user {} with transactionId {} has been undone. " + "Event Source: {}; Event Graph: {}", userId, evt.transactionId, eventToString(eventPatchVal, false), eventToString(evt, true));
-                    //update the distributed map cache
+                    routeTo(session, content, REL_SUCCESS);
+                    getLogger().info(
+                            "Event for user {} with transactionId {} has been undone. "
+                                    + "Event Source: {}; Event Graph: {}",
+                            userId, evt.transactionId, eventToString(eventPatchVal, false), eventToString(evt, true));
+                    // update the distributed map cache
                     putEventMapCache(eventPatchVal, cache);
                 }
             } catch (NoSuchElementException e) {
                 String unknown = "unknown";
-                getLogger().info(String.format("Graph event with transactionId %s with status %s and subject %s couldn't be patched. " + "Most likely the event is deleted from the source dataset.", evt.transactionId, evt.showAs != null ? evt.showAs.name() : unknown, evt.subject));
+                getLogger().info(String.format(
+                        "Graph event with transactionId %s with status %s and subject %s couldn't be patched. "
+                                + "Most likely the event is deleted from the source dataset.",
+                        evt.transactionId, evt.showAs != null ? evt.showAs.name() : unknown, evt.subject));
             }
         }
 
     }
 
     protected void deleteEventsForReal(String userId, List<Event> eventsSource, List<Event> eventsGraph,
-                                       DistributedMapCacheClient cache,
-                                       ProcessSession session) throws NoSuchAlgorithmException, IOException {
-        //Is the set of events greater in the graph than in source?
-        //Delete the event in the graph
+            DistributedMapCacheClient cache,
+            ProcessSession session) throws NoSuchAlgorithmException, IOException {
+        // Is the set of events greater in the graph than in source?
+        // Delete the event in the graph
         List<Event> eventsTotDelete = eventsDiff(eventsGraph, eventsSource);
         for (Event evt : eventsTotDelete) {
-            //Is the event managed by DIS? if not skip
-            if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null) continue;
+            // Is the event managed by DIS? if not skip
+            if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
+                continue;
             try {
-                routeToSuccess(session, msGraphClientAtomicRef.get()
+                routeTo(session, msGraphClientAtomicRef.get()
                         .users(userId)
                         .events(Objects.requireNonNull(evt.id))
                         .buildRequest()
-                        .delete());
+                        .delete(), REL_SUCCESS);
 
-                getLogger().info("Event for user {} with transactionId {} has been deleted. Event Source: {}", userId, evt.transactionId, eventToString(evt, false));
+                getLogger().info("Event for user {} with transactionId {} has been deleted. Event Source: {}", userId,
+                        evt.transactionId, eventToString(evt, false));
 
-                //delete event from the distributed map cache
+                // delete event from the distributed map cache
                 cache.remove(evt.transactionId, keySerializer);
 
             } catch (NoSuchElementException e) {
-                getLogger().error(String.format("Graph event with transactionId %s couldn't be deleted.", evt.transactionId));
+                getLogger().error(
+                        String.format("Graph event with transactionId %s couldn't be deleted.", evt.transactionId));
             }
         }
     }
 
     protected void deleteEvents(String userId, List<Event> eventsSource, List<Event> eventsGraph,
-                                DistributedMapCacheClient cache,
-                                ProcessSession session) throws NoSuchAlgorithmException, IOException {
-        //Is the set of events greater in the graph than in source?
-        //Make event in the graph tentative
+            DistributedMapCacheClient cache,
+            ProcessSession session) throws NoSuchAlgorithmException, IOException {
+        // Is the set of events greater in the graph than in source?
+        // Make event in the graph tentative
         List<Event> eventsToDelete = eventsDiff(eventsGraph, eventsSource);
         for (Event evt : eventsToDelete) {
-            //Is the event managed by DIS? If not skip
-            if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null) continue;
-            //Is the event already tentative?
+            // Is the event managed by DIS? If not skip
+            if (cache.get(evt.transactionId, keySerializer, valueDeserializer) == null)
+                continue;
+            // Is the event already tentative?
             assert evt.showAs != null;
-            if (Objects.equals(evt.showAs.name(), "TENTATIVE")) continue;
+            if (Objects.equals(evt.showAs.name(), "TENTATIVE"))
+                continue;
 
-            //Create the event for patching
+            // Create the event for patching
             Event eventPatchVal = new Event();
             eventPatchVal.start = evt.start;
             eventPatchVal.end = evt.end;
@@ -533,19 +549,23 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
             eventPatchVal.showAs = FreeBusyStatus.TENTATIVE;
 
             try {
-                routeToSuccess(session, msGraphClientAtomicRef.get()
+                routeTo(session, msGraphClientAtomicRef.get()
                         .users(userId)
                         .events(Objects.requireNonNull(evt.id))
                         .buildRequest()
-                        .patch(eventPatchVal));
+                        .patch(eventPatchVal), REL_SUCCESS);
 
-                getLogger().info("Event for user {} with transactionId {} has been deleted. Event Source: {}; Event Graph: {}", userId, evt.transactionId, eventToString(evt, false), eventToString(eventPatchVal, false));
+                getLogger().info(
+                        "Event for user {} with transactionId {} has been deleted. Event Source: {}; Event Graph: {}",
+                        userId, evt.transactionId, eventToString(evt, false), eventToString(eventPatchVal, false));
 
-                //update the distributed map cache
+                // update the distributed map cache
                 putEventMapCache(eventPatchVal, cache);
 
             } catch (NoSuchElementException e) {
-                getLogger().error(String.format("Graph event with transactionId %s couldn't be patched to state tentative.", evt.transactionId));
+                getLogger().error(
+                        String.format("Graph event with transactionId %s couldn't be patched to state tentative.",
+                                evt.transactionId));
             }
         }
     }
@@ -570,7 +590,10 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         _relationships.add(REL_RETRY);
         _relationships.add(REL_ORIGINAL);
         this.relationships = Collections.unmodifiableSet(_relationships);
-        this.descriptors = Collections.unmodifiableList(Arrays.asList(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_RS, GRAPH_USER_ID, GRAPH_IS_DELETE, GRAPH_IS_UPDATE, GRAPH_WEEKS_IN_ADVANCE, GRAPH_REBUILD_MAP_CACHE, GRAPH_ZERMELO_URL, GRAPH_ZERMELO_TOKEN, GRAPH_ZERMELO_PREFIX, GRAPH_ZERMELO_POSTFIX));
+        this.descriptors = Collections.unmodifiableList(
+                Arrays.asList(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_RS, GRAPH_USER_ID, GRAPH_IS_DELETE,
+                        GRAPH_IS_UPDATE, GRAPH_WEEKS_IN_ADVANCE, GRAPH_REBUILD_MAP_CACHE, GRAPH_ZERMELO_URL,
+                        GRAPH_ZERMELO_TOKEN, GRAPH_ZERMELO_PREFIX, GRAPH_ZERMELO_POSTFIX));
     }
 
     @Override

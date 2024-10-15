@@ -23,8 +23,8 @@
     </parent>
 
     <groupId>nl.speyk.nifi</groupId>
-        <artifactId>nifi-microsoft-graph-bundle</artifactId>
-        <version>0.1.0</version>
+    <artifactId>nifi-microsoft-graph-bundle</artifactId>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -35,5 +35,16 @@
         <module>nifi-microsoft-graph-processors</module>
         <module>nifi-microsoft-graph-processors-nar</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>nl.speyk.nifi</groupId>
+                <artifactId>nifi-microsoft-graph-processors</artifactId>
+                <version>0.1.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 
 </project>
