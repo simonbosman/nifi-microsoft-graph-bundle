@@ -37,6 +37,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static nl.speyk.nifi.microsoft.graph.processors.utils.CalendarUtils.*;
 
@@ -53,6 +55,8 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
         final ComponentLog logger = getLogger();
         rooster = getRooster(context.getProperty(GRAPH_RS).getValue());
         weeks_in_advance = context.getProperty(GRAPH_WEEKS_IN_ADVANCE).getValue();
+        final String groupToFilter = context.getProperty(GRAPH_GROUP_TO_FILTER).getValue();
+        AtomicReference<Set<String>> allowedEntities = new AtomicReference<>();
         final boolean rebuildMapCache = context.getProperty(GRAPH_REBUILD_MAP_CACHE).asBoolean();
         final String userId = context.getProperty(GRAPH_USER_ID).evaluateAttributeExpressions(requestFlowFile)
                 .getValue();
@@ -66,8 +70,17 @@ public class InvokeMicrosoftGraphCalendar extends AbstractMicrosoftGraphCalendar
             msGraphClientAtomicRef.set(microsoftGraphCredentialService.getGraphClient());
         }
 
-        // TODO: get the transitive members of the group
-        // Is userId a member of the group? if no stop here
+        // Optional Entara ID group filter for entity synchronization.
+        // Omits filtering if no group is specified.
+        if ((groupToFilter != null && !groupToFilter.isEmpty())) {
+            if (allowedEntities.get() == null || allowedEntities.get().isEmpty()) {
+                allowedEntities.set(getAllowedEntities(groupToFilter));
+            }
+            if (!allowedEntities.get().contains(userId)) {
+                session.transfer(requestFlowFile, REL_FILTERED);
+                return;
+            }
+        }
 
         // the cache client used to interact with the distributed cache
         final DistributedMapCacheClient cache = context.getProperty(GRAPH_DISTRIBUTED_MAPCACHE)

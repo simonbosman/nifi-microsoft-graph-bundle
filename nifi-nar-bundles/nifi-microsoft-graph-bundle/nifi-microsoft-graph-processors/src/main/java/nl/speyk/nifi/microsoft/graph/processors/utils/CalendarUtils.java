@@ -124,6 +124,14 @@ public final class CalendarUtils {
             .defaultValue(" [!]")
             .build();
 
+    public static final PropertyDescriptor GRAPH_GROUP_TO_FILTER = new PropertyDescriptor.Builder()
+            .name("mg-cs-group-to-filter")
+            .displayName("Microsoft Entra ID Group")
+            .description("Only entities in this group are allowed, the others get filtered")
+            .addValidator(StandardValidators.NON_BLANK_VALIDATOR)
+            .required(false)
+            .build();
+
     // relationships
     public static final Relationship REL_SUCCESS = new Relationship.Builder()
             .name("success")
@@ -145,9 +153,14 @@ public final class CalendarUtils {
             .description(
                     "Appointments that could not be written to Microsoft Graph for some reason are transferred to this relationship")
             .build();
+    public static final Relationship REL_FILTERED = new Relationship.Builder()
+            .name("filtered")
+            .description(
+                    "Appointment for entities that are not member of a given Microsoft Entra ID group are transferred to this relationship")
+            .build();
 
     private CalendarUtils() {
-        //Do not instantiate
+        // Do not instantiate
     }
 
     public enum Rooster {
@@ -158,20 +171,22 @@ public final class CalendarUtils {
         @Override
         public String toString() {
             switch (this) {
-                case MAGISTER: return "magister";
-                case ZERMELO: return "zermelo";
-                default: return "";
+                case MAGISTER:
+                    return "magister";
+                case ZERMELO:
+                    return "zermelo";
+                default:
+                    return "";
             }
         }
     }
 
     public static Rooster getRooster(String roosterSystem) {
-        return (roosterSystem.equalsIgnoreCase(Rooster.MAGISTER.toString()) ? Rooster.MAGISTER :
-                roosterSystem.equalsIgnoreCase(Rooster.ZERMELO.toString()) ? Rooster.ZERMELO :
-                        Rooster.UNKNOWN);
+        return (roosterSystem.equalsIgnoreCase(Rooster.MAGISTER.toString()) ? Rooster.MAGISTER
+                : roosterSystem.equalsIgnoreCase(Rooster.ZERMELO.toString()) ? Rooster.ZERMELO : Rooster.UNKNOWN);
     }
 
-    //Serializers needed for the distributed map cache
+    // Serializers needed for the distributed map cache
     public static class CacheValueSerializer implements Serializer<byte[]> {
 
         @Override
@@ -191,7 +206,7 @@ public final class CalendarUtils {
         }
     }
 
-    //Simple string serializer, used for serializing the cache key
+    // Simple string serializer, used for serializing the cache key
     public static class StringSerializer implements Serializer<String> {
 
         @Override

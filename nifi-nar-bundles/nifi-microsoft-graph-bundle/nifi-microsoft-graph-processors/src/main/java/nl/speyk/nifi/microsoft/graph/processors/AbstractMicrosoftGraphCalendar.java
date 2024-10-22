@@ -147,6 +147,13 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         return createHashedEvent(evt, false);
     }
 
+    protected Set<String> getAllowedEntities(String group) {
+        Set<String> allowedEntities = new HashSet<>();
+        allowedEntities.add("upn@name.com");
+
+        return allowedEntities;
+    }
+
     protected List<Event> getGraphEvents(String userId) {
         // Get all events for the next tree full working weeks
         final LocalDate dateEnd = LocalDate.now();
@@ -589,11 +596,12 @@ public abstract class AbstractMicrosoftGraphCalendar extends AbstractProcessor {
         _relationships.add(REL_FAILURE);
         _relationships.add(REL_RETRY);
         _relationships.add(REL_ORIGINAL);
+        _relationships.add(REL_FILTERED);
         this.relationships = Collections.unmodifiableSet(_relationships);
         this.descriptors = Collections.unmodifiableList(
                 Arrays.asList(GRAPH_CONTROLLER_ID, GRAPH_DISTRIBUTED_MAPCACHE, GRAPH_RS, GRAPH_USER_ID, GRAPH_IS_DELETE,
                         GRAPH_IS_UPDATE, GRAPH_WEEKS_IN_ADVANCE, GRAPH_REBUILD_MAP_CACHE, GRAPH_ZERMELO_URL,
-                        GRAPH_ZERMELO_TOKEN, GRAPH_ZERMELO_PREFIX, GRAPH_ZERMELO_POSTFIX));
+                        GRAPH_ZERMELO_TOKEN, GRAPH_ZERMELO_PREFIX, GRAPH_ZERMELO_POSTFIX, GRAPH_GROUP_TO_FILTER));
     }
 
     @Override
